@@ -42,12 +42,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import no.uio.ifi.in2000.danishah.figmatesting.R
 
 
 @Composable
@@ -63,7 +61,7 @@ fun FishSelectionScreen(viewModel: FishSelectionViewModel = viewModel(factory = 
     ) {
         // Header
         Text(
-            text = stringResource(R.string.fish_selection_title),
+            text = "Velg fisketyper",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -71,7 +69,7 @@ fun FishSelectionScreen(viewModel: FishSelectionViewModel = viewModel(factory = 
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = stringResource(R.string.fish_selection_subtitle),
+            text = "Velg fiskearter du er interessert i å spore",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -98,7 +96,7 @@ fun FishSelectionScreen(viewModel: FishSelectionViewModel = viewModel(factory = 
                     Spacer(modifier = Modifier.width(12.dp))
                     
                     Text(
-                        text = stringResource(R.string.fish_selection_count, selectedCount),
+                        text = "$selectedCount fisketyper valgt",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -140,10 +138,48 @@ fun FishTypeCard(
         animationSpec = tween(durationMillis = 300)
     )
     
-    // Get the appropriate string resources based on fish type
-    val nameResId = getFishNameResourceId(fishType.id)
-    val descResId = getFishDescriptionResourceId(fishType.id)
-    val habitatResId = getFishHabitatResourceId(fishType.id)
+    // Get the appropriate Norwegian text based on fish type
+    val name = when (fishType.id) {
+        1 -> "Atlantisk laks"
+        2 -> "Ørret"
+        3 -> "Røye"
+        4 -> "Torsk"
+        5 -> "Makrell"
+        6 -> "Sei"
+        7 -> "Gjedde"
+        8 -> "Abbor"
+        9 -> "Kveite"
+        10 -> "Harr"
+        else -> "Atlantisk laks" // Default fallback
+    }
+    
+    val description = when (fishType.id) {
+        1 -> "Vanlig i norske elver, kjent for sin hoppevne"
+        2 -> "Populær ferskvannsfisk med karakteristisk prikkete mønster"
+        3 -> "Kaldtvannsart som finnes i fjellvann og elver"
+        4 -> "Norges viktigste kommersielle fisk"
+        5 -> "Hurtigsvømmende pelagisk fisk, utmerket for nybegynnere"
+        6 -> "Vanlig kystfisk, bra for nybegynnere"
+        7 -> "Aggressiv rovfisk med skarpe tenner"
+        8 -> "Gjenkjennelig med sin stripete kropp og piggete ryggfinne"
+        9 -> "Største flatfiskart, verdsatt for sitt faste hvite kjøtt"
+        10 -> "Gjenkjennes på sin store, seilaktige ryggfinne"
+        else -> "Vanlig i norske elver, kjent for sin hoppevne" // Default fallback
+    }
+    
+    val habitat = when (fishType.id) {
+        1 -> "Elver og kystområder"
+        2 -> "Elver, innsjøer og bekker"
+        3 -> "Dype, kalde fjellvann"
+        4 -> "Saltvann, kystområder"
+        5 -> "Kyst- og åpne havområder"
+        6 -> "Kystvann"
+        7 -> "Innsjøer og sakteflytende elver"
+        8 -> "Innsjøer og sakteflytende elver"
+        9 -> "Dypt saltvann"
+        10 -> "Klare, kalde elver og bekker"
+        else -> "Elver og kystområder" // Default fallback
+    }
     
     Card(
         modifier = Modifier
@@ -194,7 +230,7 @@ fun FishTypeCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = stringResource(id = nameResId),
+                    text = name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -202,7 +238,7 @@ fun FishTypeCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 
                 Text(
-                    text = stringResource(id = descResId),
+                    text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
@@ -217,7 +253,7 @@ fun FishTypeCard(
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Text(
-                        text = stringResource(id = habitatResId),
+                        text = habitat,
                         style = MaterialTheme.typography.labelSmall,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -250,62 +286,5 @@ fun FishTypeCard(
                     .background(MaterialTheme.colorScheme.primary)
             )
         }
-    }
-}
-
-/**
- * Helper function to get the appropriate string resource ID for fish name
- */
-private fun getFishNameResourceId(fishId: Int): Int {
-    return when (fishId) {
-        1 -> R.string.fish_atlantic_salmon
-        2 -> R.string.fish_brown_trout
-        3 -> R.string.fish_arctic_char
-        4 -> R.string.fish_cod
-        5 -> R.string.fish_mackerel
-        6 -> R.string.fish_pollock
-        7 -> R.string.fish_pike
-        8 -> R.string.fish_perch
-        9 -> R.string.fish_halibut
-        10 -> R.string.fish_grayling
-        else -> R.string.fish_atlantic_salmon // Default fallback
-    }
-}
-
-/**
- * Helper function to get the appropriate string resource ID for fish description
- */
-private fun getFishDescriptionResourceId(fishId: Int): Int {
-    return when (fishId) {
-        1 -> R.string.fish_atlantic_salmon_desc
-        2 -> R.string.fish_brown_trout_desc
-        3 -> R.string.fish_arctic_char_desc
-        4 -> R.string.fish_cod_desc
-        5 -> R.string.fish_mackerel_desc
-        6 -> R.string.fish_pollock_desc
-        7 -> R.string.fish_pike_desc
-        8 -> R.string.fish_perch_desc
-        9 -> R.string.fish_halibut_desc
-        10 -> R.string.fish_grayling_desc
-        else -> R.string.fish_atlantic_salmon_desc // Default fallback
-    }
-}
-
-/**
- * Helper function to get the appropriate string resource ID for fish habitat
- */
-private fun getFishHabitatResourceId(fishId: Int): Int {
-    return when (fishId) {
-        1 -> R.string.fish_atlantic_salmon_habitat
-        2 -> R.string.fish_brown_trout_habitat
-        3 -> R.string.fish_arctic_char_habitat
-        4 -> R.string.fish_cod_habitat
-        5 -> R.string.fish_mackerel_habitat
-        6 -> R.string.fish_pollock_habitat
-        7 -> R.string.fish_pike_habitat
-        8 -> R.string.fish_perch_habitat
-        9 -> R.string.fish_halibut_habitat
-        10 -> R.string.fish_grayling_habitat
-        else -> R.string.fish_atlantic_salmon_habitat // Default fallback
     }
 } 

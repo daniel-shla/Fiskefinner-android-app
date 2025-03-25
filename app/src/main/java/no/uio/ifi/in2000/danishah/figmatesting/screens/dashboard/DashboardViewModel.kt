@@ -42,9 +42,7 @@ class DashboardViewModel : ViewModel() {
     }
 }
 
-/**
- * Data class representing weather information
- */
+
 data class WeatherData(
     val temperature: Double,
     val condition: String,

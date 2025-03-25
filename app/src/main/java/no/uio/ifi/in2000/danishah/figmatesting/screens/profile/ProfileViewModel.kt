@@ -22,9 +22,9 @@ class ProfileViewModel : ViewModel() {
         viewModelScope.launch {
             // In a real app, this would load from a repository or API
             _userProfile.value = UserProfile(
-                name = "Sigurd Lyckander",
-                email = "sigurd.example@gmail.com",
-                fishingLevel = "Expert Angler"
+                name = "Ole Gunnar Nordmann",
+                email = "OG@gmail.com",
+                fishingLevel = "Ekspert i livet"
             )
         }
     }
@@ -42,9 +42,6 @@ class ProfileViewModel : ViewModel() {
     }
 }
 
-/**
- * Data class representing a user profile
- */
 data class UserProfile(
     val name: String,
     val email: String,

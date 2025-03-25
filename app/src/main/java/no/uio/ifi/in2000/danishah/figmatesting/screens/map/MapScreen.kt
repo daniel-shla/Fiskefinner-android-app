@@ -120,7 +120,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 value = searchQuery,
                 onValueChange = { viewModel.updateSearchQuery(it) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.map_search_placeholder)) },
+                placeholder = { Text("Søk etter norske byer...") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     IconButton(onClick = {
@@ -233,7 +233,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                         }
                     } else if (showMinCharsHint) {
                         Text(
-                            text = stringResource(R.string.map_min_chars),
+                            text = "Skriv minst 3 tegn for å søke",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
@@ -242,7 +242,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                     } else if (searchQuery.length >= 3) {
                         // Show "No results" message
                         Text(
-                            text = stringResource(R.string.map_no_results, searchQuery),
+                            text = "Ingen steder funnet som matcher '$searchQuery'",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
@@ -268,7 +268,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 shape = CircleShape,
                 modifier = Modifier.size(40.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.map_zoom_in))
+                Icon(Icons.Default.Add, contentDescription = "Zoom inn")
             }
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -281,7 +281,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 shape = CircleShape,
                 modifier = Modifier.size(40.dp)
             ) {
-                Icon(Icons.Default.Remove, contentDescription = stringResource(R.string.map_zoom_out))
+                Icon(Icons.Default.Remove, contentDescription = "Zoom ut")
             }
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -294,7 +294,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 shape = CircleShape,
                 modifier = Modifier.size(40.dp)
             ) {
-                Icon(Icons.Default.MyLocation, contentDescription = stringResource(R.string.map_current_location))
+                Icon(Icons.Default.MyLocation, contentDescription = "Min posisjon")
             }
         }
     }

@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.outlined.Air
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -36,7 +38,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -54,46 +58,46 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
     // Sample spots data (In real app, this would come from ViewModel)
     val nearbySpots = listOf(
         FishingSpot(
-            stringResource(R.string.location_oslofjord), 
-            stringResource(R.string.distance_15_min), 
-            stringResource(R.string.water_type_saltwater)
+            "Oslofjorden", 
+            "15 min unna", 
+            "Saltvann"
         ),
         FishingSpot(
-            stringResource(R.string.location_sognsvann), 
-            stringResource(R.string.distance_25_min), 
-            stringResource(R.string.water_type_freshwater)
+            "Sognsvann", 
+            "25 min unna", 
+            "Ferskvann"
         ),
         FishingSpot(
-            stringResource(R.string.location_akerselva), 
-            stringResource(R.string.distance_10_min), 
-            stringResource(R.string.water_type_freshwater)
+            "Akerselva", 
+            "10 min unna", 
+            "Ferskvann"
         ),
         FishingSpot(
-            stringResource(R.string.location_lysaker), 
-            stringResource(R.string.distance_30_min), 
-            stringResource(R.string.water_type_freshwater)
+            "Lysakerelva", 
+            "30 min unna", 
+            "Ferskvann"
         )
     )
     
     // Sample recent catches (In real app, this would come from ViewModel)
     val recentCatches = listOf(
         Catch(
-            stringResource(R.string.fish_trout), 
+            "Ørret", 
             "3.5kg", 
-            stringResource(R.string.location_oslofjord), 
-            stringResource(R.string.time_2_days_ago)
+            "Oslofjorden", 
+            "2 dager siden"
         ),
         Catch(
-            stringResource(R.string.fish_salmon), 
+            "Laks", 
             "2.1kg", 
-            stringResource(R.string.location_akerselva), 
-            stringResource(R.string.time_1_week_ago)
+            "Akerselva", 
+            "1 uke siden"
         ),
         Catch(
-            stringResource(R.string.fish_pike_short), 
+            "Gjedde", 
             "5.2kg", 
-            stringResource(R.string.location_sognsvann), 
-            stringResource(R.string.time_2_weeks_ago)
+            "Sognsvann", 
+            "2 uker siden"
         )
     )
     
@@ -105,7 +109,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
     ) {
         // Welcome section
         Text(
-            text = stringResource(R.string.dashboard_welcome),
+            text = "Velkommen tilbake!",
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -113,7 +117,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = stringResource(R.string.dashboard_fishing_forecast),
+            text = "Her er dagens fiskevarsling",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -135,7 +139,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = stringResource(R.string.dashboard_todays_weather),
+                        text = "Dagens vær",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -151,7 +155,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
                         Spacer(modifier = Modifier.width(4.dp))
                         
                         Text(
-                            text = stringResource(R.string.location_oslo),
+                            text = "Oslo",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -183,7 +187,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
                         )
                         
                         Text(
-                            text = stringResource(R.string.weather_sunny),
+                            text = "Solrikt",
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -195,7 +199,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
                         WeatherDetail(
                             icon = Icons.Outlined.Air,
                             value = "${weatherData?.windSpeed ?: 5} m/s",
-                            label = stringResource(R.string.dashboard_wind)
+                            label = "Vind"
                         )
                         
                         Spacer(modifier = Modifier.height(8.dp))
@@ -203,7 +207,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
                         WeatherDetail(
                             icon = Icons.Default.WaterDrop,
                             value = "65%",
-                            label = stringResource(R.string.dashboard_humidity)
+                            label = "Fuktighet"
                         )
                     }
                 }
@@ -222,7 +226,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = stringResource(R.string.dashboard_good_fishing_day),
+                            text = "God dag for fiske!",
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -242,14 +246,14 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.dashboard_nearby_fishing_spots),
+                    text = "Fiskeplasser i nærheten",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = stringResource(R.string.dashboard_view_all),
+                        text = "Vis alle",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -284,14 +288,14 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.dashboard_recent_catches),
+                    text = "Nylige fangster",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = stringResource(R.string.dashboard_view_all),
+                        text = "Vis alle",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -478,4 +482,4 @@ data class Catch(
     val weight: String,
     val location: String,
     val time: String
-) 
+)
