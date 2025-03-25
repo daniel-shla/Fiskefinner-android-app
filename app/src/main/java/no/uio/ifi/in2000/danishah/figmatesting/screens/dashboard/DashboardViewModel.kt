@@ -20,8 +20,7 @@ class DashboardViewModel : ViewModel() {
     
     private fun loadWeatherData() {
         viewModelScope.launch {
-            // TODO: Implement weather data loading
-            // Nå har jeg bare DUMMY DATA
+            // In a real app, this would fetch from a weather API
             _weatherData.value = WeatherData(
                 temperature = 20.0,
                 condition = "Sunny",
@@ -43,7 +42,9 @@ class DashboardViewModel : ViewModel() {
     }
 }
 
-
+/**
+ * Data class representing weather information
+ */
 data class WeatherData(
     val temperature: Double,
     val condition: String,

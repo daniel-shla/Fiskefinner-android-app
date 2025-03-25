@@ -25,6 +25,8 @@ import androidx.navigation.compose.rememberNavController
 import no.uio.ifi.in2000.danishah.figmatesting.navigation.NavigationItem
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.DashboardScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.DashboardViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSelectionScreen
+import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSelectionViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.profile.ProfileScreen
@@ -49,6 +51,7 @@ fun FishingApp() {
     val items = listOf(
         NavigationItem.Map,
         NavigationItem.Dashboard,
+        NavigationItem.FishSelection,
         NavigationItem.Profile
     )
     
@@ -56,6 +59,7 @@ fun FishingApp() {
     val mapViewModel: MapViewModel = viewModel(factory = MapViewModel.Factory)
     val dashboardViewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
     val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory)
+    val fishSelectionViewModel: FishSelectionViewModel = viewModel(factory = FishSelectionViewModel.Factory)
     
     Scaffold(
         bottomBar = {
@@ -99,6 +103,9 @@ fun FishingApp() {
             }
             composable(NavigationItem.Profile.route) {
                 ProfileScreen(viewModel = profileViewModel)
+            }
+            composable(NavigationItem.FishSelection.route) {
+                FishSelectionScreen(viewModel = fishSelectionViewModel)
             }
         }
     }
