@@ -36,9 +36,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import no.uio.ifi.in2000.danishah.figmatesting.R
 
 /**
  * Composable function for the Profile screen
@@ -76,7 +78,7 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel(factory = ProfileViewM
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
-                            contentDescription = "Profile Picture",
+                            contentDescription = stringResource(R.string.profile_edit),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(80.dp)
                         )
@@ -94,7 +96,7 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel(factory = ProfileViewM
                     ) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Profile",
+                            contentDescription = stringResource(R.string.profile_edit),
                             tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(20.dp)
                         )
@@ -126,7 +128,7 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel(factory = ProfileViewM
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = userProfile?.fishingLevel ?: "Beginner",
+                            text = stringResource(R.string.profile_level),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -147,7 +149,7 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel(factory = ProfileViewM
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Fishing Stats",
+                    text = stringResource(R.string.profile_fishing_stats),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -158,9 +160,9 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel(factory = ProfileViewM
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem("25", "Catches")
-                    StatItem("8", "Spots")
-                    StatItem("4.2", "Avg. Size (kg)")
+                    StatItem("25", stringResource(R.string.profile_catches))
+                    StatItem("8", stringResource(R.string.profile_spots))
+                    StatItem("4.2", stringResource(R.string.profile_avg_size))
                 }
             }
         }
@@ -177,16 +179,28 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel(factory = ProfileViewM
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Recent Activity",
+                    text = stringResource(R.string.profile_recent_activity),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                ActivityItem("Caught a 3.5kg Trout", "2 days ago", "Oslofjord")
-                ActivityItem("Visited new fishing spot", "5 days ago", "Lake Sognsvann")
-                ActivityItem("Caught a 2.1kg Salmon", "1 week ago", "Akerselva")
+                ActivityItem(
+                    stringResource(R.string.profile_caught_trout), 
+                    stringResource(R.string.time_2_days_ago), 
+                    stringResource(R.string.location_oslofjord)
+                )
+                ActivityItem(
+                    stringResource(R.string.profile_visited_spot), 
+                    stringResource(R.string.time_5_days_ago), 
+                    stringResource(R.string.location_sognsvann)
+                )
+                ActivityItem(
+                    stringResource(R.string.profile_caught_salmon), 
+                    stringResource(R.string.time_1_week_ago), 
+                    stringResource(R.string.location_akerselva)
+                )
             }
         }
         
@@ -202,15 +216,15 @@ fun ProfileScreen(viewModel: ProfileViewModel = viewModel(factory = ProfileViewM
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Settings",
+                    text = stringResource(R.string.profile_settings),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                SettingsItem("Account Settings", Icons.Default.Settings)
-                SettingsItem("About", Icons.Default.Info)
+                SettingsItem(stringResource(R.string.profile_account_settings), Icons.Default.Settings)
+                SettingsItem(stringResource(R.string.profile_about), Icons.Default.Info)
             }
         }
     }

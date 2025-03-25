@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -51,6 +52,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import no.uio.ifi.in2000.danishah.figmatesting.R
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
 
 
@@ -118,8 +120,8 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 value = searchQuery,
                 onValueChange = { viewModel.updateSearchQuery(it) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                placeholder = { Text(stringResource(R.string.map_search_placeholder)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     IconButton(onClick = {
                         if (searchQuery.isNotEmpty()) {
@@ -130,7 +132,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                             viewModel.setSearchActive(false)
                         }
                     }) {
-                        Icon(Icons.Default.ArrowForward, contentDescription = "Navigate")
+                        Icon(Icons.Default.ArrowForward, contentDescription = null)
                     }
                 },
                 shape = RoundedCornerShape(8.dp),
@@ -231,7 +233,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                         }
                     } else if (showMinCharsHint) {
                         Text(
-                            text = "Type at least 3 characters to search",
+                            text = stringResource(R.string.map_min_chars),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
@@ -240,7 +242,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                     } else if (searchQuery.length >= 3) {
                         // Show "No results" message
                         Text(
-                            text = "No places found matching '$searchQuery'",
+                            text = stringResource(R.string.map_no_results, searchQuery),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
@@ -266,7 +268,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 shape = CircleShape,
                 modifier = Modifier.size(40.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Zoom in")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.map_zoom_in))
             }
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -279,7 +281,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 shape = CircleShape,
                 modifier = Modifier.size(40.dp)
             ) {
-                Icon(Icons.Default.Remove, contentDescription = "Zoom out")
+                Icon(Icons.Default.Remove, contentDescription = stringResource(R.string.map_zoom_out))
             }
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -292,7 +294,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 shape = CircleShape,
                 modifier = Modifier.size(40.dp)
             ) {
-                Icon(Icons.Default.MyLocation, contentDescription = "My Location")
+                Icon(Icons.Default.MyLocation, contentDescription = stringResource(R.string.map_current_location))
             }
         }
     }

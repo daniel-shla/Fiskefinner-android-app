@@ -1,3 +1,112 @@
 <resources>
-    <string name="app_name">FigmaTesting</string>
+    <string name="app_name">FiskeFinner</string>
+    
+    <!-- Navigation -->
+    <string name="nav_map">Kart</string>
+    <string name="nav_dashboard">Info</string>
+    <string name="nav_profile">Profil</string>
+    <string name="nav_fish_types">Fisketyper</string>
+    
+    <!-- Dashboard Screen -->
+    <string name="dashboard_welcome">Velkommen tilbake!</string>
+    <string name="dashboard_fishing_forecast">Her er dagens fiskevarsling</string>
+    <string name="dashboard_todays_weather">Dagens vær</string>
+    <string name="dashboard_good_fishing_day">God dag for fiske! 👍</string>
+    <string name="dashboard_wind">Vind</string>
+    <string name="dashboard_humidity">Fuktighet</string>
+    <string name="dashboard_nearby_fishing_spots">Fiskeplasser i nærheten</string>
+    <string name="dashboard_view_all">Vis alle</string>
+    <string name="dashboard_recent_catches">Nylige fangster</string>
+    
+    <!-- Profile Screen -->
+    <string name="profile_fishing_stats">Fiskestatistikk</string>
+    <string name="profile_catches">Fangster</string>
+    <string name="profile_spots">Steder</string>
+    <string name="profile_avg_size">Gj.snitt størrelse (kg)</string>
+    <string name="profile_recent_activity">Nylig aktivitet</string>
+    <string name="profile_settings">Innstillinger</string>
+    <string name="profile_account_settings">Kontoinnstillinger</string>
+    <string name="profile_about">Om appen</string>
+    <string name="profile_edit">Rediger profil</string>
+    
+    <!-- Fish Selection Screen -->
+    <string name="fish_selection_title">Velg fisketyper</string>
+    <string name="fish_selection_subtitle">Velg fiskearter du er interessert i å spore</string>
+    <string name="fish_selection_count">%1$d fisketyper valgt</string>
+    
+    <!-- Fish Types -->
+    <string name="fish_atlantic_salmon">Atlantisk laks</string>
+    <string name="fish_atlantic_salmon_desc">Vanlig i norske elver, kjent for sin hoppevne</string>
+    <string name="fish_atlantic_salmon_habitat">Elver og kystområder</string>
+    
+    <string name="fish_brown_trout">Ørret</string>
+    <string name="fish_brown_trout_desc">Populær ferskvannsfisk med karakteristisk prikkete mønster</string>
+    <string name="fish_brown_trout_habitat">Elver, innsjøer og bekker</string>
+    
+    <string name="fish_arctic_char">Røye</string>
+    <string name="fish_arctic_char_desc">Kaldtvannsart som finnes i fjellvann og elver</string>
+    <string name="fish_arctic_char_habitat">Dype, kalde fjellvann</string>
+    
+    <string name="fish_cod">Torsk</string>
+    <string name="fish_cod_desc">Norges viktigste kommersielle fisk</string>
+    <string name="fish_cod_habitat">Saltvann, kystområder</string>
+    
+    <string name="fish_mackerel">Makrell</string>
+    <string name="fish_mackerel_desc">Hurtigsvømmende pelagisk fisk, utmerket for nybegynnere</string>
+    <string name="fish_mackerel_habitat">Kyst- og åpne havområder</string>
+    
+    <string name="fish_pollock">Sei</string>
+    <string name="fish_pollock_desc">Vanlig kystfisk, bra for nybegynnere</string>
+    <string name="fish_pollock_habitat">Kystvann</string>
+    
+    <string name="fish_pike">Gjedde</string>
+    <string name="fish_pike_desc">Aggressiv rovfisk med skarpe tenner</string>
+    <string name="fish_pike_habitat">Innsjøer og sakteflytende elver</string>
+    
+    <string name="fish_perch">Abbor</string>
+    <string name="fish_perch_desc">Gjenkjennelig med sin stripete kropp og piggete ryggfinne</string>
+    <string name="fish_perch_habitat">Innsjøer og sakteflytende elver</string>
+    
+    <string name="fish_halibut">Kveite</string>
+    <string name="fish_halibut_desc">Største flatfiskart, verdsatt for sitt faste hvite kjøtt</string>
+    <string name="fish_halibut_habitat">Dypt saltvann</string>
+    
+    <string name="fish_grayling">Harr</string>
+    <string name="fish_grayling_desc">Gjenkjennes på sin store, seilaktige ryggfinne</string>
+    <string name="fish_grayling_habitat">Klare, kalde elver og bekker</string>
+    
+    <!-- Map Screen -->
+    <string name="map_search_placeholder">Søk etter norske byer...</string>
+    <string name="map_current_location">Min posisjon</string>
+    <string name="map_zoom_in">Zoom inn</string>
+    <string name="map_zoom_out">Zoom ut</string>
+    <string name="map_min_chars">Skriv minst 3 tegn for å søke</string>
+    <string name="map_no_results">Ingen steder funnet som matcher \'%1$s\'</string>
+    
+    <!-- Dashboard Sample Data -->
+    <string name="location_oslo">Oslo</string>
+    <string name="weather_sunny">Solrikt</string>
+    <string name="location_oslofjord">Oslofjorden</string>
+    <string name="location_sognsvann">Sognsvann</string>
+    <string name="location_akerselva">Akerselva</string>
+    <string name="location_lysaker">Lysakerelva</string>
+    <string name="distance_15_min">15 min unna</string>
+    <string name="distance_25_min">25 min unna</string>
+    <string name="distance_10_min">10 min unna</string>
+    <string name="distance_30_min">30 min unna</string>
+    <string name="water_type_saltwater">Saltvann</string>
+    <string name="water_type_freshwater">Ferskvann</string>
+    <string name="fish_trout">Ørret</string>
+    <string name="fish_salmon">Laks</string>
+    <string name="fish_pike_short">Gjedde</string>
+    <string name="time_2_days_ago">2 dager siden</string>
+    <string name="time_1_week_ago">1 uke siden</string>
+    <string name="time_2_weeks_ago">2 uker siden</string>
+    <string name="time_5_days_ago">5 dager siden</string>
+    
+    <!-- Profile Sample Data -->
+    <string name="profile_caught_trout">Fanget en 3.5kg Ørret</string>
+    <string name="profile_visited_spot">Besøkte ny fiskeplass</string>
+    <string name="profile_caught_salmon">Fanget en 2.1kg Laks</string>
+    <string name="profile_level">Expert fisker</string>
 </resources>

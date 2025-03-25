@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FishSelectionViewModel : ViewModel() {
@@ -24,7 +23,8 @@ class FishSelectionViewModel : ViewModel() {
     
     private fun loadFishTypes() {
         viewModelScope.launch {
-            // Populate with dummy data
+            // Populate with dummy data - the actual names, descriptions, and habitats 
+            // are loaded from string resources in the FishSelectionScreen
             _fishTypes.value = listOf(
                 FishType(
                     id = 1,
@@ -131,7 +131,12 @@ class FishSelectionViewModel : ViewModel() {
     }
 }
 
-//SOON TM
+/**
+ * Data class representing a fish type
+ * 
+ * Note: The actual display text for these fields comes from string resources
+ * in the FishSelectionScreen - these English values are just placeholders.
+ */
 data class FishType(
     val id: Int,
     val name: String,

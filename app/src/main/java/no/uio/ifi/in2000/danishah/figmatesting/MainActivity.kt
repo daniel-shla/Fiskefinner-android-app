@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -69,8 +70,8 @@ fun FishingApp() {
                 
                 items.forEach { item ->
                     NavigationBarItem(
-                        icon = { Icon(item.icon, contentDescription = item.title) },
-                        label = { Text(text = item.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        icon = { Icon(item.icon, contentDescription = stringResource(id = item.titleResId)) },
+                        label = { Text(text = stringResource(id = item.titleResId), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                         selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
                         onClick = {
                             navController.navigate(item.route) {
