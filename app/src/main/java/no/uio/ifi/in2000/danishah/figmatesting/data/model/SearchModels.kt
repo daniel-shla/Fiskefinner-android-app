@@ -3,6 +3,9 @@ package no.uio.ifi.in2000.danishah.figmatesting.data.model
 import com.mapbox.geojson.Point
 import kotlinx.serialization.Serializable
 
+// DET SER UT SOM AT DET ER MYE SOM ER MASSE FEIL HER, MEN ALT ER RIKTIG
+// IKKE ENDRE NOE
+
 @Serializable
 data class SearchSuggestion(
     val name: String,
