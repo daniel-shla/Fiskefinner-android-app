@@ -8,6 +8,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -47,12 +48,19 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
     
     // Debounce search job
     private var searchJob: Job? = null
-    
+
+    private val _shouldDraw = MutableStateFlow(false)
+    val shouldDraw: StateFlow<Boolean> = _shouldDraw
+
+    fun triggerDraw() {
+        _shouldDraw.value = true
+    }
+
+
     // State that combines search query and min chars
     val showMinCharsHint = searchQuery.combine(_isSearchActive) { query, active ->
         query.isNotEmpty() && query.length < 3 && active
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-    
 
     //Update search query and trigger search
     fun updateSearchQuery(query: String) {
