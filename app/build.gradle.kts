@@ -49,14 +49,20 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    
+
+
     // Navigation
     implementation(libs.androidx.navigation.compose)
     
     // Mapbox (with correct version)
     implementation("com.mapbox.maps:android:11.10.3")
     implementation("com.mapbox.extension:maps-compose:11.10.3")
-    
+
+
+
+
+
+
     // Icons
     implementation(libs.androidx.material.icons.extended)
     
@@ -70,6 +76,7 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.kotlinx.serialization.json)
+
     
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)

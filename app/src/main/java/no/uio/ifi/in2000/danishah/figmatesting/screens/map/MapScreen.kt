@@ -1,5 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
+import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +53,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
+import io.ktor.client.HttpClient
+import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
+import no.uio.ifi.in2000.danishah.figmatesting.data.source.MittFiskeDataSource
+import no.uio.ifi.in2000.danishah.figmatesting.screens.mittFiske.MittFiskeViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.mittFiske.MittFiskeViewModelFactory
+import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.compose.MapEffect
+import com.mapbox.maps.plugin.Plugin
+import com.mapbox.maps.plugin.annotation.AnnotationPlugin
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
+import kotlinx.coroutines.delay
+import no.uio.ifi.in2000.danishah.figmatesting.R
 
 
 @Composable
@@ -59,7 +74,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
     // Get screen density for map initialization
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
-    
+
     // Collect state from ViewModel
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
@@ -68,7 +83,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
     val mapCenter by viewModel.mapCenter.collectAsState()
     val zoomLevel by viewModel.zoomLevel.collectAsState()
     val showMinCharsHint by viewModel.showMinCharsHint.collectAsState()
-    
+
     // Using the recommended viewport state approach
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
@@ -79,6 +94,16 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
         }
     }
 
+    val mittFiskeViewModel: MittFiskeViewModel = viewModel(
+        factory = MittFiskeViewModelFactory(
+            MittFiskeRepository(
+                MittFiskeDataSource(HttpClient())
+            )
+        )
+    )
+    val mittFiskeState by mittFiskeViewModel.uiState.collectAsState()
+
+
     LaunchedEffect(mapCenter, zoomLevel) {
         val cameraOptions = CameraOptions.Builder()
             .center(mapCenter)
@@ -86,10 +111,26 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
             .pitch(0.0)
             .bearing(0.0)
             .build()
-            
+
         mapViewportState.setCameraOptions(cameraOptions)
     }
-    
+
+    LaunchedEffect(Unit) {
+        mittFiskeViewModel.loadLocations(
+            /*
+-26.893700772506584 82.33641809270495,-26.893700772506584 23.91350077509478,37.266455477493416 23.91350077509478,37.266455477493416 82.33641809270495,-26.893700772506584 82.33641809270495
+10.52400614376138 60.07455470863071,10.52400614376138%2059.81974768311581,10.774631754112942 59.81974768311581,10.774631754112942 60.07455470863071,10.52400614376138 60.07455470863071
+5.302921548204229 62.18340318067006,5.302921548204229 58.13876707969069,9.312931313829228 58.13876707969069,9.312931313829228 62.18340318067006,5.302921548204229 62.18340318067006
+6.505125601910762 59.89990727321326,6.505125601910762 58.86343183709712,7.507628043317012 58.86343183709712,7.507628043317012 59.89990727321326,6.505125601910762 59.89990727321326
+             */
+
+
+            polygonWKT = "POLYGON((6.505125601910762 59.89990727321326,6.505125601910762 58.86343183709712,7.507628043317012 58.86343183709712,7.507628043317012 59.89990727321326,6.505125601910762 59.89990727321326))",
+
+            pointWKT = "POINT(10.7124 59.9797)"
+        )
+    }
+
     // BEHOLD NULLCHECKS VED CAMERASTATE; IKKE ENDRE!
     remember(mapViewportState.cameraState?.center, mapViewportState.cameraState?.zoom) {
         mapViewportState.cameraState?.center?.let { center ->
@@ -99,13 +140,61 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
         }
         true
     }
-    
+
     Box(modifier = Modifier.fillMaxSize()) {
         MapboxMap(
             modifier = Modifier.fillMaxSize(),
             mapViewportState = mapViewportState,
-        )
-        
+        ){
+            val drawPoints by viewModel.shouldDraw.collectAsState()
+
+            LaunchedEffect(mittFiskeState.isLoading) {
+                while (mittFiskeState.isLoading) {
+                    delay(100)
+                    Log.d("MittFiske", "loading")
+
+                }
+                if (mittFiskeState.locations.isNotEmpty()) {
+                    Log.d("MittFiske", "Klar for tegning av ${mittFiskeState.locations.size} punkter")
+                    viewModel.triggerDraw()
+                }
+            }
+
+            if (drawPoints && mittFiskeState.locations.isNotEmpty()) {
+                MapEffect(mapViewportState) { mapView ->
+                    val annotationPlugin = mapView.getPlugin(Plugin.MAPBOX_ANNOTATION_PLUGIN_ID) as? AnnotationPlugin
+                    val pointAnnotationManager = annotationPlugin?.createPointAnnotationManager()
+                    pointAnnotationManager?.deleteAll()
+
+                    Log.d("MittFiske", "Tegner ${mittFiskeState.locations.size} punkter")
+
+                    mittFiskeState.locations.forEach { location ->
+                        try {
+                            val lon = location.p.coordinates[0]
+                            val lat = location.p.coordinates[1]
+                            val point = Point.fromLngLat(lon, lat)
+
+                            val context = mapView.context
+                            val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.img)
+
+
+                            val options = PointAnnotationOptions()
+                                .withPoint(point)
+                                .withIconImage(bitmap)
+                                .withIconSize(0.1)  // Make points larger
+
+                            pointAnnotationManager?.create(options)
+                            Log.d("MittFiske", "nå skal det være  med punkt ${lon}, ${lat} = ${point}")
+
+                        } catch (e: Exception) {
+                            Log.e("MittFiske", "Feil med punkt: ${e.message}")
+                        }
+                    }
+                }
+            }
+
+        }
+
         // Search bar container (Jetpack Compose semantikk)
         Box(
             modifier = Modifier
@@ -147,7 +236,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                     }
                 )
             )
-            
+
             // Show search results as a dropdown
             if (isSearchActive) {
                 Surface(
@@ -195,22 +284,22 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                                         suggestion.featureType == "address" -> Icons.Default.LocationOn
                                         else -> Icons.Default.Place
                                     }
-                                    
+
                                     Icon(
                                         imageVector = icon,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary
                                     )
-                                    
+
                                     Spacer(modifier = Modifier.width(16.dp))
-                                    
+
                                     Column {
                                         Text(
                                             text = suggestion.name,
                                             style = MaterialTheme.typography.bodyLarge,
                                             fontWeight = FontWeight.Medium
                                         )
-                                        
+
                                         // Show address or place information if available
                                         suggestion.fullAddress?.let {
                                             Text(
@@ -250,7 +339,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 }
             }
         }
-        
+
         // Zoom controls and My Location - at bottom right
         Column(
             modifier = Modifier
@@ -268,9 +357,9 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Zoom inn")
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             // Zoom out button
             SmallFloatingActionButton(
                 onClick = {
@@ -281,9 +370,9 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
             ) {
                 Icon(Icons.Default.Remove, contentDescription = "Zoom ut")
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             // My Location button
             SmallFloatingActionButton(
                 onClick = {
@@ -296,4 +385,4 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
             }
         }
     }
-} 
+}
