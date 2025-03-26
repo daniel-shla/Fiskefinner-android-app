@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
-import no.uio.ifi.in2000.danishah.figmatesting.data.model.SearchSuggestion
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
 
 class LocationRepository(

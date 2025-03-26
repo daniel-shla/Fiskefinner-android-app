@@ -1,7 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.source
 
 import com.mapbox.geojson.Point
-import no.uio.ifi.in2000.danishah.figmatesting.data.model.SearchSuggestion
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
 import no.uio.ifi.in2000.danishah.figmatesting.data.apiclient.MapboxApiClient
 import java.util.UUID
 

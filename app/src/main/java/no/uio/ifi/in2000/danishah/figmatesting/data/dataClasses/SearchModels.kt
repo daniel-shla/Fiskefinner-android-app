@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.danishah.figmatesting.data.model
+package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
 
 import com.mapbox.geojson.Point
 import kotlinx.serialization.Serializable

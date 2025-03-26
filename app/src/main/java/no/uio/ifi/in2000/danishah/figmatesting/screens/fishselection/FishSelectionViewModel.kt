@@ -28,72 +28,72 @@ class FishSelectionViewModel : ViewModel() {
             _fishTypes.value = listOf(
                 FishType(
                     id = 1,
-                    name = "Atlantic Salmon",
-                    description = "Commonly found in Norwegian rivers, known for their jumping ability",
-                    habitat = "Rivers and coastal areas",
+                    name = "Atlantisk laks",
+                    description = "Vanlig i norske elver, kjent for sin hoppevne",
+                    habitat = "Elver og kystområder",
                     isSelected = false
                 ),
                 FishType(
                     id = 2,
-                    name = "Brown Trout",
-                    description = "Popular freshwater game fish with distinctive spotted pattern",
-                    habitat = "Rivers, lakes, and streams",
+                    name = "Ørret",
+                    description = "Populær ferskvannsfisk med karakteristisk prikkete mønster",
+                    habitat = "Elver, innsjøer og bekker",
                     isSelected = false
                 ),
                 FishType(
                     id = 3,
-                    name = "Arctic Char",
-                    description = "Cold water species found in mountain lakes and rivers",
-                    habitat = "Deep, cold mountain lakes",
+                    name = "Røye",
+                    description = "Kaldtvannsart som finnes i fjellvann og elver",
+                    habitat = "Dype, kalde fjellvann",
                     isSelected = false
                 ),
                 FishType(
                     id = 4,
-                    name = "Cod",
-                    description = "Most important commercial fish in Norway",
-                    habitat = "Saltwater, coastal areas",
+                    name = "Torsk",
+                    description = "Norges viktigste kommersielle fisk",
+                    habitat = "Saltvann, kystområder",
                     isSelected = false
                 ),
                 FishType(
                     id = 5,
-                    name = "Mackerel",
-                    description = "Fast-swimming pelagic fish, excellent for beginners",
-                    habitat = "Coastal and open sea areas",
+                    name = "Makrell",
+                    description = "Hurtigsvømmende pelagisk fisk, utmerket for nybegynnere",
+                    habitat = "Kyst- og åpne havområder",
                     isSelected = false
                 ),
                 FishType(
                     id = 6,
-                    name = "Pollock",
-                    description = "Common coastal fish, good for beginning anglers",
-                    habitat = "Coastal waters",
+                    name = "Sei",
+                    description = "Vanlig kystfisk, bra for nybegynnere",
+                    habitat = "Kystvann",
                     isSelected = false
                 ),
                 FishType(
                     id = 7,
-                    name = "Pike",
-                    description = "Aggressive predator with razor-sharp teeth",
-                    habitat = "Lakes and slow-moving rivers",
+                    name = "Gjedde",
+                    description = "Aggressiv rovfisk med skarpe tenner",
+                    habitat = "Innsjøer og sakteflytende elver",
                     isSelected = false
                 ),
                 FishType(
                     id = 8,
-                    name = "Perch",
-                    description = "Recognizable by its striped body and spiny dorsal fin",
-                    habitat = "Lakes and slow-moving rivers",
+                    name = "Abbor",
+                    description = "Gjenkjennelig med sin stripete kropp og piggete ryggfinne",
+                    habitat = "Innsjøer og sakteflytende elver",
                     isSelected = false
                 ),
                 FishType(
                     id = 9,
-                    name = "Halibut",
-                    description = "Largest flatfish species, prized for its firm white meat",
-                    habitat = "Deep saltwater",
+                    name = "Kveite",
+                    description = "Største flatfiskart, verdsatt for sitt faste hvite kjøtt",
+                    habitat = "Dypt saltvann",
                     isSelected = false
                 ),
                 FishType(
                     id = 10,
-                    name = "Grayling",
-                    description = "Recognized by its large, sail-like dorsal fin",
-                    habitat = "Clear, cold rivers and streams",
+                    name = "Harr",
+                    description = "Gjenkjennes på sin store, seilaktige ryggfinne",
+                    habitat = "Klare, kalde elver og bekker",
                     isSelected = false
                 )
             )
@@ -131,12 +131,7 @@ class FishSelectionViewModel : ViewModel() {
     }
 }
 
-/**
- * Data class representing a fish type
- * 
- * Note: The actual display text for these fields comes from string resources
- * in the FishSelectionScreen - these English values are just placeholders.
- */
+// placeholder data, dummy no api
 data class FishType(
     val id: Int,
     val name: String,

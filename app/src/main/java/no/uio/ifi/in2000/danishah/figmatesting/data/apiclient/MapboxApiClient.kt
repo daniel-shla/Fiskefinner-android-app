@@ -9,7 +9,7 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import no.uio.ifi.in2000.danishah.figmatesting.data.model.SearchSuggestion
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
 import org.json.JSONObject
 import java.net.URLEncoder
 

@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import no.uio.ifi.in2000.danishah.figmatesting.data.model.SearchSuggestion
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.LocationRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
 
