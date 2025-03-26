@@ -1,5 +1,5 @@
-package no.uio.ifi.in2000.danishah.figmatesting.screens.mittFiske
-import android.util.Log
+package no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow

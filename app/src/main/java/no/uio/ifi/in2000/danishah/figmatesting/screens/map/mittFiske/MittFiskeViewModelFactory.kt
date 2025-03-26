@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.danishah.figmatesting.screens.mittFiske
+package no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

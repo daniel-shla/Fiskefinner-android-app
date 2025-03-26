@@ -13,9 +13,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
 import org.json.JSONObject
 import java.net.URLEncoder
 
-/**
- * API client for Mapbox Search API using Ktor
- */
+
 class MapboxApiClient {
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {

@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.LocationOn
@@ -57,8 +58,8 @@ import io.ktor.client.HttpClient
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.MittFiskeDataSource
-import no.uio.ifi.in2000.danishah.figmatesting.screens.mittFiske.MittFiskeViewModel
-import no.uio.ifi.in2000.danishah.figmatesting.screens.mittFiske.MittFiskeViewModelFactory
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModelFactory
 import com.mapbox.geojson.Point
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.plugin.Plugin
@@ -67,7 +68,7 @@ import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import kotlinx.coroutines.delay
 import no.uio.ifi.in2000.danishah.figmatesting.R
-
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.SearchResultsCard
 
 @Composable
 fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory)) {
@@ -103,7 +104,6 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
     )
     val mittFiskeState by mittFiskeViewModel.uiState.collectAsState()
 
-
     LaunchedEffect(mapCenter, zoomLevel) {
         val cameraOptions = CameraOptions.Builder()
             .center(mapCenter)
@@ -117,16 +117,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
 
     LaunchedEffect(Unit) {
         mittFiskeViewModel.loadLocations(
-            /*
--26.893700772506584 82.33641809270495,-26.893700772506584 23.91350077509478,37.266455477493416 23.91350077509478,37.266455477493416 82.33641809270495,-26.893700772506584 82.33641809270495
-10.52400614376138 60.07455470863071,10.52400614376138%2059.81974768311581,10.774631754112942 59.81974768311581,10.774631754112942 60.07455470863071,10.52400614376138 60.07455470863071
-5.302921548204229 62.18340318067006,5.302921548204229 58.13876707969069,9.312931313829228 58.13876707969069,9.312931313829228 62.18340318067006,5.302921548204229 62.18340318067006
-6.505125601910762 59.89990727321326,6.505125601910762 58.86343183709712,7.507628043317012 58.86343183709712,7.507628043317012 59.89990727321326,6.505125601910762 59.89990727321326
-             */
-
-
             polygonWKT = "POLYGON((6.505125601910762 59.89990727321326,6.505125601910762 58.86343183709712,7.507628043317012 58.86343183709712,7.507628043317012 59.89990727321326,6.505125601910762 59.89990727321326))",
-
             pointWKT = "POINT(10.7124 59.9797)"
         )
     }
@@ -152,7 +143,6 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 while (mittFiskeState.isLoading) {
                     delay(100)
                     Log.d("MittFiske", "loading")
-
                 }
                 if (mittFiskeState.locations.isNotEmpty()) {
                     Log.d("MittFiske", "Klar for tegning av ${mittFiskeState.locations.size} punkter")
@@ -177,7 +167,6 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                             val context = mapView.context
                             val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.img)
 
-
                             val options = PointAnnotationOptions()
                                 .withPoint(point)
                                 .withIconImage(bitmap)
@@ -192,10 +181,9 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                     }
                 }
             }
-
         }
 
-        // Search bar container (Jetpack Compose semantikk)
+        // Search bar container
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -213,13 +201,11 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                     IconButton(onClick = {
                         if (searchQuery.isNotEmpty()) {
                             focusManager.clearFocus()
-                            // Use the searchAndNavigate function to go to selected or searched location
                             viewModel.searchAndNavigate(searchQuery)
-                            // Hide search suggestions
                             viewModel.setSearchActive(false)
                         }
                     }) {
-                        Icon(Icons.Default.ArrowForward, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
                     }
                 },
                 shape = RoundedCornerShape(8.dp),
@@ -230,7 +216,6 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                         if (searchQuery.isNotEmpty()) {
                             focusManager.clearFocus()
                             viewModel.searchAndNavigate(searchQuery)
-                            // Hide search suggestions
                             viewModel.setSearchActive(false)
                         }
                     }
@@ -239,103 +224,20 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
 
             // Show search results as a dropdown
             if (isSearchActive) {
-                Surface(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 56.dp) // below the search bar
-                        .zIndex(1f), // Ensure it appears above other content
-                    shape = RoundedCornerShape(8.dp),
-                    shadowElevation = 4.dp
                 ) {
-                    if (isLoading) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp
-                            )
+                    SearchResultsCard(
+                        isLoading = isLoading,
+                        searchResults = searchResults,
+                        searchQuery = searchQuery,
+                        showMinCharsHint = showMinCharsHint,
+                        onSuggestionClick = { suggestion ->
+                            viewModel.selectSuggestion(suggestion)
                         }
-                    } else if (searchResults.isNotEmpty()) {
-                        // Show search suggestions
-                        LazyColumn(
-                            modifier = Modifier
-                                .padding(vertical = 8.dp)
-                                .heightIn(max = 300.dp) // maks 4 suggestions, ikke endre denne
-                        ) {
-                            items(searchResults) { suggestion ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            // Select the suggestion but don't navigate yet
-                                            viewModel.selectSuggestion(suggestion)
-                                            // Keep the dropdown open until user clicks the button
-                                        }
-                                        .padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    // Show appropriate icon based on feature type
-                                    val icon = when {
-                                        suggestion.maki != null -> Icons.Default.Place
-                                        suggestion.featureType == "address" -> Icons.Default.LocationOn
-                                        else -> Icons.Default.Place
-                                    }
-
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-
-                                    Spacer(modifier = Modifier.width(16.dp))
-
-                                    Column {
-                                        Text(
-                                            text = suggestion.name,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontWeight = FontWeight.Medium
-                                        )
-
-                                        // Show address or place information if available
-                                        suggestion.fullAddress?.let {
-                                            Text(
-                                                text = it,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        } ?: suggestion.placeFormatted?.let {
-                                            Text(
-                                                text = it,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } else if (showMinCharsHint) {
-                        Text(
-                            text = "Skriv minst 3 tegn for å søke",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    } else if (searchQuery.length >= 3) {
-                        // Show "No results" message
-                        Text(
-                            text = "Ingen steder funnet som matcher '$searchQuery'",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+                    )
                 }
             }
         }
