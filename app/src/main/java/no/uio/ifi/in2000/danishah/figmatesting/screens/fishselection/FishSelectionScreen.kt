@@ -138,7 +138,6 @@ fun FishTypeCard(
         animationSpec = tween(durationMillis = 300)
     )
     
-    // Get the appropriate Norwegian text based on fish type
     val name = when (fishType.id) {
         1 -> "Atlantisk laks"
         2 -> "Ørret"
@@ -150,7 +149,7 @@ fun FishTypeCard(
         8 -> "Abbor"
         9 -> "Kveite"
         10 -> "Harr"
-        else -> "Atlantisk laks" // Default fallback
+        else -> ""
     }
     
     val description = when (fishType.id) {
@@ -164,7 +163,7 @@ fun FishTypeCard(
         8 -> "Gjenkjennelig med sin stripete kropp og piggete ryggfinne"
         9 -> "Største flatfiskart, verdsatt for sitt faste hvite kjøtt"
         10 -> "Gjenkjennes på sin store, seilaktige ryggfinne"
-        else -> "Vanlig i norske elver, kjent for sin hoppevne" // Default fallback
+        else -> ""
     }
     
     val habitat = when (fishType.id) {
@@ -178,7 +177,7 @@ fun FishTypeCard(
         8 -> "Innsjøer og sakteflytende elver"
         9 -> "Dypt saltvann"
         10 -> "Klare, kalde elver og bekker"
-        else -> "Elver og kystområder" // Default fallback
+        else -> ""
     }
     
     Card(

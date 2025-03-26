@@ -110,15 +110,13 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         viewModelScope.launch {
             // First search for the location
             repository.searchLocations(query, _mapCenter.value)
-            
-            // Wait a short time for results to be available
+
             delay(500)
             
             // Navigate to the first result if available
             val results = searchResults.value
             if (results.isNotEmpty()) {
                 navigateToLocation(results.first())
-                // Close the search dialog
                 setSearchActive(false)
             } else {
                 // If no results, keep the search dialog open
@@ -164,7 +162,6 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
-                    @Suppress("UNCHECKED_CAST")
                     return MapViewModel(
                         repository = LocationRepository()
                     ) as T

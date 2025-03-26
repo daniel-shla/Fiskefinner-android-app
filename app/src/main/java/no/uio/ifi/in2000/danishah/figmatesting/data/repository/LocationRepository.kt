@@ -14,11 +14,11 @@ class LocationRepository(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     
-    // Current search results
+    // search results
     private val _searchResults = MutableStateFlow<List<SearchSuggestion>>(emptyList())
     val searchResults = _searchResults.asStateFlow()
     
-    // State for loading indicator
+    // loading indicator
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
     
