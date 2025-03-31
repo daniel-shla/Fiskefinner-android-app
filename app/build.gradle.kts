@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 android {
@@ -50,6 +51,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -57,11 +60,6 @@ dependencies {
     // Mapbox (with correct version)
     implementation("com.mapbox.maps:android:11.10.3")
     implementation("com.mapbox.extension:maps-compose:11.10.3")
-
-
-
-
-
 
     // Icons
     implementation(libs.androidx.material.icons.extended)

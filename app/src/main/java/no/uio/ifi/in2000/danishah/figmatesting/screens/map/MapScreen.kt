@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.CoordinateBounds
+import com.mapbox.maps.MapView
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
@@ -49,12 +52,21 @@ import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.delay
 import no.uio.ifi.in2000.danishah.figmatesting.R
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.toPoint
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.MittFiskeDataSource
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.SearchResultsCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModelFactory
+import androidx.compose.runtime.snapshotFlow
+import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
+
 
 @Composable
 fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory)) {
@@ -70,6 +82,14 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
     val mapCenter by viewModel.mapCenter.collectAsState()
     val zoomLevel by viewModel.zoomLevel.collectAsState()
     val showMinCharsHint by viewModel.showMinCharsHint.collectAsState()
+    val clusters by viewModel.clusters.collectAsState()
+
+    val mapViewRef = remember { mutableStateOf<MapView?>(null) }
+    val currentBounds = remember { mutableStateOf<CoordinateBounds?>(null) }
+    val annotationManagerRef = remember { mutableStateOf<PointAnnotationManager?>(null) }
+
+
+
 
     // Using the recommended viewport state approach
     val mapViewportState = rememberMapViewportState {
@@ -90,6 +110,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
     )
     val mittFiskeState by mittFiskeViewModel.uiState.collectAsState()
 
+
     LaunchedEffect(mapCenter, zoomLevel) {
         val cameraOptions = CameraOptions.Builder()
             .center(mapCenter)
@@ -100,13 +121,10 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
 
         mapViewportState.setCameraOptions(cameraOptions)
     }
+    /*
+    sør norge: 6.505125601910762 59.89990727321326,6.505125601910762 58.86343183709712,7.507628043317012 58.86343183709712,7.507628043317012 59.89990727321326,6.505125601910762 59.89990727321326
+    */
 
-    LaunchedEffect(Unit) {
-        mittFiskeViewModel.loadLocations(
-            polygonWKT = "POLYGON((6.505125601910762 59.89990727321326,6.505125601910762 58.86343183709712,7.507628043317012 58.86343183709712,7.507628043317012 59.89990727321326,6.505125601910762 59.89990727321326))",
-            pointWKT = "POINT(10.7124 59.9797)"
-        )
-    }
 
     // BEHOLD NULLCHECKS VED CAMERASTATE; IKKE ENDRE!
     remember(mapViewportState.cameraState?.center, mapViewportState.cameraState?.zoom) {
@@ -131,41 +149,78 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                     Log.d("MittFiske", "loading")
                 }
                 if (mittFiskeState.locations.isNotEmpty()) {
-                    Log.d("MittFiske", "Klar for tegning av ${mittFiskeState.locations.size} punkter")
+                    Log.d("MittFiske", "Klar for tegning av ${clusters.size} clusters")
+                    //logFiskeplasser(mittFiskeState.locations)
                     viewModel.triggerDraw()
                 }
             }
 
-            if (drawPoints && mittFiskeState.locations.isNotEmpty()) {
-                MapEffect(mapViewportState) { mapView ->
-                    val annotationPlugin = mapView.getPlugin(Plugin.MAPBOX_ANNOTATION_PLUGIN_ID) as? AnnotationPlugin
-                    val pointAnnotationManager = annotationPlugin?.createPointAnnotationManager()
-                    pointAnnotationManager?.deleteAll()
+            MapEffect(mapViewportState) { mapView ->
+                mapViewRef.value = mapView
 
-                    Log.d("MittFiske", "Tegner ${mittFiskeState.locations.size} punkter")
+                val plugin = mapView.getPlugin(Plugin.MAPBOX_ANNOTATION_PLUGIN_ID) as? AnnotationPlugin
+                if (annotationManagerRef.value == null) {
+                    annotationManagerRef.value = plugin?.createPointAnnotationManager()
+                }
 
-                    mittFiskeState.locations.forEach { location ->
-                        try {
-                            val lon = location.p.coordinates[0]
-                            val lat = location.p.coordinates[1]
-                            val point = Point.fromLngLat(lon, lat)
+                val bounds = mapView.getMapboxMap().coordinateBoundsForCamera(
+                    CameraOptions.Builder()
+                        .center(mapViewportState.cameraState?.center)
+                        .zoom(mapViewportState.cameraState?.zoom)
+                        .build()
+                )
+                currentBounds.value = bounds
+            }
 
-                            val context = mapView.context
-                            val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.img)
 
-                            val options = PointAnnotationOptions()
-                                .withPoint(point)
-                                .withIconImage(bitmap)
-                                .withIconSize(0.1)  // Make points larger
+            LaunchedEffect(Unit) {
+                snapshotFlow { mapViewportState.cameraState }
+                    .filterNotNull()
+                    .map { cameraState -> cameraState.center to cameraState.zoom }
+                    .distinctUntilChanged()
+                    .collect { (center, zoom) ->
+                        val mapView = mapViewRef.value ?: return@collect
+                        val bounds = mapView.mapboxMap.coordinateBoundsForCamera(
+                            CameraOptions.Builder().center(center).zoom(zoom).build()
+                        )
 
-                            pointAnnotationManager?.create(options)
-                            Log.d("MittFiske", "nå skal det være  med punkt ${lon}, ${lat} = ${point}")
+                        val polygonWKT = boundsToPolygonWKT(bounds)
+                        val pointWKT = "POINT(${center.longitude()} ${center.latitude()})"
 
-                        } catch (e: Exception) {
-                            Log.e("MittFiske", "Feil med punkt: ${e.message}")
+                        Log.d("AutoUpdate", "Kamera endret → API-kall")
+                        mittFiskeViewModel.loadLocations(polygonWKT, pointWKT)
+
+                        while (mittFiskeViewModel.uiState.value.isLoading) {
+                            Log.d("MittFiske", "loading")
+                            delay(100)
+                        }
+
+                        val locations = mittFiskeViewModel.uiState.value.locations
+                        if (locations.isNotEmpty()) {
+                            Log.d("AutoUpdate", "Clusterer ${locations.size} punkter (zoom=$zoom)")
+                            viewModel.updateClusters(locations, zoom)
+                            viewModel.triggerDraw()
+
+                            val manager = annotationManagerRef.value ?: return@collect
+                            manager.deleteAll()
+
+
+                            Log.d("AutoUpdate", "Tegner ${viewModel.clusters.value.size} clusters")
+
+                            viewModel.clusters.value.forEach { cluster ->
+                                val bitmap = BitmapFactory.decodeResource(mapView.context.resources, R.drawable.img)
+                                val options = PointAnnotationOptions()
+                                    .withPoint(cluster.center)
+                                    .withIconImage(bitmap)
+                                    .withIconSize(if (cluster.spots.size == 1) 0.1 else 0.15)
+                                    .withTextField(cluster.spots.size.toString())
+                                    .withTextOffset(listOf(0.0, -2.0))
+                                    .withTextSize(12.0)
+
+                                manager.create(options)
+                            }
                         }
                     }
-                }
             }
         }
 
@@ -274,3 +329,50 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
         }
     }
 }
+
+fun boundsToPolygonWKT(bounds: CoordinateBounds): String {
+    val sw = bounds.southwest
+    val ne = bounds.northeast
+
+    return "POLYGON((" +
+            "${sw.longitude()} ${ne.latitude()}, " +
+            "${sw.longitude()} ${sw.latitude()}, " +
+            "${ne.longitude()} ${sw.latitude()}, " +
+            "${ne.longitude()} ${ne.latitude()}, " +
+            "${sw.longitude()} ${ne.latitude()}" +
+            "))"
+}
+
+fun logFiskeplasser(locations: List<MittFiskeLocation>) {
+    Log.d("Fiskeplasser", "Antall steder: ${locations.size}")
+
+    locations.forEachIndexed { index, loc ->
+        val point = loc.toPoint()
+
+        val header = """
+            ====================
+            Fiskeplass #$index
+            ID: ${loc.id}
+            Navn: ${loc.name}
+            Koordinater: Lat ${point.latitude()}, Lng ${point.longitude()}
+        """.trimIndent()
+
+        Log.d("Fiskeplasser", header)
+
+        loc.locs.forEachIndexed { i, subloc ->
+            val locInfo = """
+                └ Loc #$i
+                  Navn: ${subloc.n}
+                  Kategori: ${subloc.ca}
+                  Kommune/kode: ${subloc.k}
+                  Info: ${subloc.de}
+                  Features: ${subloc.fe?.joinToString(", ") ?: "Ingen"}
+            """.trimIndent()
+
+            Log.d("Fiskeplasser", locInfo)
+        }
+    }
+
+    Log.d("Fiskeplasser", "========== SLUTT ==========")
+}
+

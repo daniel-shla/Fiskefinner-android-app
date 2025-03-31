@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards
 
+import TimeSeries
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.outlined.Air
@@ -26,10 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.WeatherData
 
 @Composable
-fun WeatherCard(weatherData: WeatherData?) {
+fun WeatherCard(weatherData: TimeSeries?) {
+    val viewModel: WeatherViewModel = viewModel()
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -84,7 +89,7 @@ fun WeatherCard(weatherData: WeatherData?) {
                 
                 Column {
                     Text(
-                        text = "${weatherData?.temperature?.toInt() ?: 0}°C",
+                        text = "${weatherData?.data?.instant?.details?.air_temperature?.toInt() ?: 0}°C",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -100,16 +105,16 @@ fun WeatherCard(weatherData: WeatherData?) {
                 Column(horizontalAlignment = Alignment.End) {
                     WeatherDetail(
                         icon = Icons.Outlined.Air,
-                        value = "${weatherData?.windSpeed ?: 5} m/s",
+                        value = "${weatherData?.data?.instant?.details?.wind_speed ?: 5} m/s",
                         label = "Vind"
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     WeatherDetail(
-                        icon = Icons.Default.WaterDrop,
-                        value = "65%",
-                        label = "Fuktighet"
+                        icon = Icons.Default.Cloud,
+                        value = "${weatherData?.data?.instant?.details?.cloud_area_fraction ?: 50} %",
+                        label = "Skydekke"
                     )
                 }
             }
