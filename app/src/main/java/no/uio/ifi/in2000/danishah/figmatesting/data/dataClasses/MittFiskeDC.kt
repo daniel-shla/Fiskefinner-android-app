@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
 import kotlinx.serialization.Serializable
-import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards.FishingSpot
 
 import com.mapbox.geojson.Point
 

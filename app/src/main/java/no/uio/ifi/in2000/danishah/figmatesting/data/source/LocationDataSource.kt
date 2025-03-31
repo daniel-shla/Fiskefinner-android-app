@@ -8,7 +8,7 @@ import java.util.UUID
 
 class LocationDataSource(private val api: MapboxApiClient = MapboxApiClient()) {
     
-    // Session token for Mapbox Search API
+    // Session token for Mapbox Search API (Must be randomly generated each time, i think??)
     private var sessionToken = UUID.randomUUID().toString()
     
     // Reset session token - called when a search session is completed
@@ -32,15 +32,10 @@ class LocationDataSource(private val api: MapboxApiClient = MapboxApiClient()) {
     
     companion object {
         val NORWAY_CENTER = Point.fromLngLat(10.7522, 61.5)
-        
         val OSLO_LOCATION = Point.fromLngLat(10.6458, 59.8946)
         
         // Default zooms
         const val COUNTRY_ZOOM = 4.0
         const val DETAIL_ZOOM = 12.0
     }
-    
-//    fun close() {
-//        api.close()
-//    }
 } 

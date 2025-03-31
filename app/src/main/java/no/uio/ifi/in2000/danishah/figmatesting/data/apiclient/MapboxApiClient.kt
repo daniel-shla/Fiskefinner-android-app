@@ -37,7 +37,7 @@ class MapboxApiClient {
             // Encode query for URL
             val encodedQuery = URLEncoder.encode(query, "UTF-8")
             
-            // Build the URL
+            // Build the URL for searching (må se slik ut, no changy changy)
             val url = "https://api.mapbox.com/search/searchbox/v1/suggest?" +
                     "q=$encodedQuery" +
                     "&country=NO" +
@@ -45,11 +45,12 @@ class MapboxApiClient {
                     "&proximity=${center.longitude()},${center.latitude()}" +
                     "&session_token=$sessionToken" +
                     "&access_token=$apiKey"
-            
+
+
+
             val response = client.get(url)
             val responseText = response.bodyAsText()
             
-            // Parse the JSON manually since the API response might not directly map to our data model
             val jsonResponse = JSONObject(responseText)
             val suggestions = jsonResponse.getJSONArray("suggestions")
             val suggestionsList = mutableListOf<SearchSuggestion>()
@@ -85,7 +86,6 @@ class MapboxApiClient {
             val response = client.get(url)
             val responseText = response.bodyAsText()
             
-            // Parse JSON response
             val jsonResponse = JSONObject(responseText)
             val features = jsonResponse.getJSONArray("features")
             

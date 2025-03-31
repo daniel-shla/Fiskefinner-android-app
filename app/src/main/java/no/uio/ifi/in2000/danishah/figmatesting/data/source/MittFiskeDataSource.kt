@@ -87,7 +87,7 @@ class MittFiskeDataSource(
                         )
                     )
                 } catch (e: Exception) {
-                    Log.e("MittFiske", "🚨 Feil i parsing av element $i: ${e.message}")
+                    Log.e("MittFiske", " Feil i parsing av element $i: ${e.message}")
                     continue
                 }
             }
