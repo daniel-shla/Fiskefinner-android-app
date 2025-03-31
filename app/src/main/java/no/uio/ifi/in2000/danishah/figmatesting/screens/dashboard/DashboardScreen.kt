@@ -34,7 +34,9 @@ import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards.WeatherCa
 
 @Composable
 fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)) {
-    val weatherData by viewModel.weatherData.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+
+
     val scrollState = rememberScrollState()
     
     // Sample spots data (In real app, this would come from ViewModel)
@@ -107,8 +109,27 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = Dashboar
         Spacer(modifier = Modifier.height(16.dp))
         
         // Weather card
-        WeatherCard(weatherData)
-        
+        when (uiState) {
+            is WeatherUiState.Loading -> {
+                Text("Laster værdata...")
+            }
+            is WeatherUiState.Error -> {
+                val error = (uiState as WeatherUiState.Error).message
+                Text("Feil: $error")
+            }
+            is WeatherUiState.Success -> {
+                val weather = viewModel.getCurrentWeather()
+                if (weather.isNotEmpty()) {
+                    WeatherCard(weather.first())
+                } else {
+                    Text("Ingen værdata tilgjengelig.")
+                }
+            }
+
+            else -> {}
+        }
+
+
         Spacer(modifier = Modifier.height(24.dp))
         
         // Nearby fishing spots

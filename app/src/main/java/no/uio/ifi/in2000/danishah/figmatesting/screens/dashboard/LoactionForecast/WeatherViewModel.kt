@@ -1,41 +1,55 @@
-package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard
+package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast
 
 import TimeSeries
 import WeatherUiState
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.WeatherRepository
 
-class DashboardViewModel : ViewModel() {
-    // Weather data state
-    private val _weatherData = MutableStateFlow<WeatherData?>(null)
-    val weatherData: StateFlow<WeatherData?> = _weatherData.asStateFlow()
+class WeatherViewModel() : ViewModel() {
 
     private val repository: WeatherRepository = WeatherRepository()
+
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
     val uiState: StateFlow<WeatherUiState> = _uiState
 
     init {
-        // Initialize weather data
-        loadWeatherData()
+        fetchWeather(59.9139, 10.7522) // Oslo coordinates
     }
-    
-    private fun loadWeatherData() {
+
+    private fun fetchWeather(lat: Double, lon: Double) {
         viewModelScope.launch {
             _uiState.value = WeatherUiState.Loading
             try {
-                val data = repository.getWeather(59.9139, 10.7522)
+                val data = repository.getWeather(lat, lon)
                 _uiState.value = WeatherUiState.Success(data)
             } catch (e: Exception) {
                 _uiState.value = WeatherUiState.Error("Feil ved henting av værdata: ${e.message}")
             }
         }
+    }
+
+    fun getNext10DaysWeather(): List<TimeSeries> {
+        val weather = (uiState.value as? WeatherUiState.Success)?.weather
+        if (weather == null) {
+            Log.d("DEBUG", "Weather data is null or not loaded yet")
+            return emptyList()
+        }
+
+        val timeseries = weather.properties.timeseries
+        Log.d("DEBUG", "Total timeseries count: ${timeseries.size}")
+
+        val grouped = timeseries.groupBy { it.time.substring(0, 10) }
+        Log.d("DEBUG", "Grouped days count: ${grouped.keys.size}")
+
+        val next10Days = grouped.values.mapNotNull { it.firstOrNull() }.take(10)
+        Log.d("DEBUG", "Next 10 days count: ${next10Days.size}")
+
+        return next10Days
     }
 
     fun getCurrentWeather(): List<TimeSeries> {
@@ -51,23 +65,4 @@ class DashboardViewModel : ViewModel() {
         return listOf(timeseries.first())
     }
 
-
-    companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
-                    @Suppress("UNCHECKED_CAST")
-                    return DashboardViewModel() as T
-                }
-                throw IllegalArgumentException("Unknown ViewModel class")
-            }
-        }
-    }
 }
-
-
-data class WeatherData(
-    val temperature: Double,
-    val condition: String,
-    val windSpeed: Double
-) 
