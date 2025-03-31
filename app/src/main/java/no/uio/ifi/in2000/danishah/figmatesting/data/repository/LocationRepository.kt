@@ -55,7 +55,5 @@ class LocationRepository(
         dataSource.resetSessionToken()
     }
 
-//    fun close() {
-//        dataSource.close()
-//    }
+
 } 

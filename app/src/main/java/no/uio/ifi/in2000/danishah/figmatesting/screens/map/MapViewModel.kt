@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -13,9 +14,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.toPoint
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.LocationRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 
 class MapViewModel(private val repository: LocationRepository = LocationRepository()) : ViewModel() {
@@ -51,6 +60,9 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
 
     private val _shouldDraw = MutableStateFlow(false)
     val shouldDraw: StateFlow<Boolean> = _shouldDraw
+
+    private val _clusters = MutableStateFlow<List<Cluster>>(emptyList())
+    val clusters: StateFlow<List<Cluster>> = _clusters
 
     fun triggerDraw() {
         _shouldDraw.value = true
@@ -132,6 +144,68 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             }
         }
     }
+
+    fun haversineDistance(a: Point, b: Point): Double {
+        val R = 6371000.0
+        val dLat = Math.toRadians(b.latitude() - a.latitude())
+        val dLon = Math.toRadians(b.longitude() - a.longitude())
+        val lat1 = Math.toRadians(a.latitude())
+        val lat2 = Math.toRadians(b.latitude())
+
+        val aCalc = sin(dLat / 2).pow(2.0) + sin(dLon / 2).pow(2.0) * cos(lat1) * cos(lat2)
+        val c = 2 * atan2(sqrt(aCalc), sqrt(1 - aCalc))
+
+        return R * c
+    }
+
+
+
+    fun updateClusters(locations: List<MittFiskeLocation>, zoom: Double) {
+        Log.d("ClusterDebug", "Zoom: $zoom, antall locations: ${locations.size}")
+        _clusters.value = clusterLocations(locations, zoom)
+    }
+
+    fun clusterLocations(locations: List<MittFiskeLocation>, zoom: Double): List<Cluster> {
+        val maxDistance = when (zoom.toInt()) {
+            in 0..4 -> 250000.0
+            5 -> 220000.0
+            6 -> 200000.0
+            7 -> 17000.0
+            8 -> 15000.0
+            9 -> 10000.0
+            10 -> 8000.0
+            11 -> 6000.0
+            12 -> 4000.0
+            else -> 0.0
+        }
+
+
+        if (maxDistance == 0.0) {
+            return locations.map { Cluster(it.toPoint(), listOf(it)) }
+        }
+
+        val clusters = mutableListOf<Cluster>()
+
+        for (loc in locations) {
+            val point = loc.toPoint()
+
+            val existing = clusters.find {
+                haversineDistance(it.center, point) < maxDistance
+            }
+
+            if (existing != null) {
+                val updated = existing.spots + loc
+                clusters.remove(existing)
+                clusters.add(Cluster(existing.center, updated))
+            } else {
+                clusters.add(Cluster(point, listOf(loc)))
+            }
+        }
+        Log.d("ClusterDebug", "Antall clusters generert: ${clusters.size}")
+        return clusters
+    }
+
+
 
     // Navigate to a location
     fun navigateToLocation(suggestion: SearchSuggestion) {

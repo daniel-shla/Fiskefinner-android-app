@@ -1,6 +1,16 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
 import kotlinx.serialization.Serializable
 
+import com.mapbox.geojson.Point
+
+data class Cluster(
+    val center: Point,
+    val spots: List<MittFiskeLocation>
+)
+
+
+
+
 @Serializable
 data class MittFiskeLocation(
     val id: String,
@@ -8,6 +18,12 @@ data class MittFiskeLocation(
     val p: PointGeometry,
     val locs: List<Loc>
 )
+
+fun MittFiskeLocation.toPoint(): Point {
+    val lon = p.coordinates[0]
+    val lat = p.coordinates[1]
+    return Point.fromLngLat(lon, lat)
+}
 
 @Serializable
 data class PointGeometry(
@@ -26,3 +42,6 @@ data class Loc(
     val fe: List<String>?,
     val de: String
 )
+
+
+

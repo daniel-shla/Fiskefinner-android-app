@@ -28,7 +28,7 @@ class MittFiskeDataSource(
             val url = "$BASE_URL?" +
                     "filter=c/any(p:geo.intersects(p,geography'$polygonWKT')) " +
                     "and min le $min and max ge $max" +
-                    "&limit=200&orderby=geo.distance(p, geography'$pointWKT')"
+                    "&limit=1000&orderby=geo.distance(p, geography'$pointWKT')"
             Log.d("MittFiske", "${url}")
 
 
@@ -87,7 +87,7 @@ class MittFiskeDataSource(
                         )
                     )
                 } catch (e: Exception) {
-                    Log.e("MittFiske", "🚨 Feil i parsing av element $i: ${e.message}")
+                    Log.e("MittFiske", " Feil i parsing av element $i: ${e.message}")
                     continue
                 }
             }

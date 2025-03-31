@@ -26,7 +26,7 @@ class MittFiskeViewModel(
         polygonWKT: String,
         pointWKT: String,
         min: Int = 13,
-        max: Int = 13
+        max: Int = 20
 
     ) {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
