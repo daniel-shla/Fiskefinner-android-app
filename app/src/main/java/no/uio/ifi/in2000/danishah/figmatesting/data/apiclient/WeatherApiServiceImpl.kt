@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast
+package no.uio.ifi.in2000.danishah.figmatesting.data.apiclient
 
 
 import WeatherResponse
@@ -6,7 +6,6 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -19,7 +18,7 @@ class WeatherApiServiceImpl : WeatherApiService {
     private val client = HttpClient {
         install(ContentNegotiation) {
             json(Json {
-                ignoreUnknownKeys = true // Prevents crashes due to extra JSON fields
+                ignoreUnknownKeys = true
             })
         }
     }

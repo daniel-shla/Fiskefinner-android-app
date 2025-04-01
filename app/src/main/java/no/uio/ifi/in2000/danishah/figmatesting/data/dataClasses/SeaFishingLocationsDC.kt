@@ -39,7 +39,6 @@ data class FishingLocationGeometry(
     @SerialName("rings") val rings: List<List<List<Double>>>? = null
 )
 
-// Domain model for use in the app
 data class FishingLocation(
     val name: String,
     val fishTypes: List<String>,

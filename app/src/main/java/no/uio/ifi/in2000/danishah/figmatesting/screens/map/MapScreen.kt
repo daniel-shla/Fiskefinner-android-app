@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
-// New imports for polygon annotations
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -87,7 +86,7 @@ import android.graphics.Color as AndroidColor
 @Composable
 fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory)) {
     // Get screen density for map initialization
-    //val density = LocalDensity.current
+    val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
 
     // Collect state from ViewModel
@@ -251,11 +250,11 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                             manager.deleteAll()
 
                             viewModel.clusters.value.forEach { cluster ->
-                                val bitmap = BitmapFactory.decodeResource(mapView.context.resources, R.drawable.img)
+                                val bitmap = BitmapFactory.decodeResource(mapView.context.resources, R.drawable.yallaimg)
                                 val options = PointAnnotationOptions()
                                     .withPoint(cluster.center)
                                     .withIconImage(bitmap)
-                                    .withIconSize(if (cluster.spots.size == 1) 0.1 else 0.15)
+                                    .withIconSize(if (cluster.spots.size == 1) 0.04 else 0.040)
                                     .withTextField(cluster.spots.size.toString())
                                     .withTextOffset(listOf(0.0, -2.0))
                                     .withTextSize(12.0)
@@ -552,8 +551,8 @@ private fun drawPolygons(polygonManager: PolygonAnnotationManager?, fishingLocat
                     Point.fromLngLat(lng, lat)
                 }
 
-                // some of the polygons that we take in a like 2000 or more points, and we want this to be simplified for performance
-                if (points.size >= 3) { // kant draw polygon with less than 3 points
+                // some of the polygons that we take in are like 3000, and we want this to be simplified for performance
+                if (points.size >= 3) { // cant draw polygon with less than 3 points
                     val simplifiedPoints = if (points.size > 50) {
                         points.filterIndexed { i, _ -> i % (points.size / 50 + 1) == 0 }
                     } else {
@@ -596,4 +595,3 @@ fun boundsToPolygonWKT(bounds: CoordinateBounds): String {
             "${sw.longitude()} ${ne.latitude()}" +
             "))"
 }
-

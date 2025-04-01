@@ -27,7 +27,7 @@ class SeaFishingLocationsApiClient {
     private val dataSource = SeaFishingLocationsDataSource()
     private val baseUrl = "https://gis.fiskeridir.no/server/rest/services/Yggdrasil/Kystnære_fiskeridata/MapServer/4/query"
 
-    suspend fun getFishingLocations(offset: Int = 0, limit: Int = 1000): List<FishingLocation> {
+    suspend fun getFishingLocations(offset: Int = 0, limit: Int = 2000): List<FishingLocation> {
         return try {
             val response = fetchFromApi(offset, limit)
             dataSource.processApiResponse(response)
@@ -37,7 +37,7 @@ class SeaFishingLocationsApiClient {
         }
     }
 
-    private suspend fun fetchFromApi(offset: Int = 0, limit: Int = 3000): FishingLocationResponse {
+    private suspend fun fetchFromApi(offset: Int = 0, limit: Int = 2000): FishingLocationResponse {
         try {
             val url = "$baseUrl?where=1%3D1" +
                     "&outFields=stedsnavn,alle_arter,SHAPE" +

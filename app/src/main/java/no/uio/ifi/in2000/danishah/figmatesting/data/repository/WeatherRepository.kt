@@ -1,7 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.repository
 
 import WeatherResponse
-import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherApiServiceImpl
+import no.uio.ifi.in2000.danishah.figmatesting.data.apiclient.WeatherApiServiceImpl
 
 class WeatherRepository() {
 
