@@ -35,7 +35,6 @@ class MittFiskeDataSource(
             val response: HttpResponse = client.get(url)
             val raw = response.bodyAsText()
 
-            Log.d("MittFiske", "RAW JSON: $raw")
 
             val jsonArray = JSONArray(raw)
             val result = mutableListOf<MittFiskeLocation>()
@@ -87,7 +86,7 @@ class MittFiskeDataSource(
                         )
                     )
                 } catch (e: Exception) {
-                    Log.e("MittFiske", "🚨 Feil i parsing av element $i: ${e.message}")
+                    Log.e("MittFiske", "Feil i parsing av element $i: ${e.message}")
                     continue
                 }
             }
