@@ -588,7 +588,7 @@ fun boundsToPolygonWKT(bounds: CoordinateBounds): String {
     val ne = bounds.northeast
 
     return "POLYGON((" +
-            "${sw.longitude()} ${ne.latitude()}, " +
+            "${sw.longitude()} ${ne.latitude()}," +
             "${sw.longitude()} ${sw.latitude()}, " +
             "${ne.longitude()} ${sw.latitude()}, " +
             "${ne.longitude()} ${ne.latitude()}, " +
