@@ -13,10 +13,17 @@ data class TimeSeries(
 )
 
 @Serializable
-data class Data(val instant: Instant)
+data class Data(
+    val instant: Instant,
+    val next_1_hours: NextHourData? = null // for ML
+)
 
 @Serializable
 data class Instant(val details: Details)
+
+// for treningsdata til ML (nedbør finnes ikke i Instant! trengs for modellen
+@Serializable
+data class NextHourData(val details: NextHourDetails)
 
 @Serializable
 data class Details(
@@ -24,6 +31,11 @@ data class Details(
     val air_temperature: Double,
     val cloud_area_fraction: Double,
     val wind_speed: Double,
+)
+
+@Serializable
+data class NextHourDetails(
+    val precipitation_amount: Double // nedbørsmengde i mm til ML
 )
 
 sealed class WeatherUiState {
