@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,11 +65,15 @@ import com.mapbox.maps.plugin.annotation.generated.PolygonAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.createPolygonAnnotationManager
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.danishah.figmatesting.R
 import no.uio.ifi.in2000.danishah.figmatesting.data.apiclient.SeaFishingLocationsApiClient
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FishingLocation
@@ -83,6 +88,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeVi
 import android.graphics.Color as AndroidColor
 
 
+@OptIn(FlowPreview::class)
 @Composable
 fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory)) {
     // Get screen density for map initialization
@@ -226,40 +232,48 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                     .filterNotNull()
                     .map { cameraState -> cameraState.center to cameraState.zoom }
                     .distinctUntilChanged()
+                    .debounce(300)//kan justeres
                     .collect { (center, zoom) ->
-                        val mapView = mapViewRef.value ?: return@collect
-                        val bounds = mapView.mapboxMap.coordinateBoundsForCamera(
-                            CameraOptions.Builder().center(center).zoom(zoom).build()
-                        )
+                        withContext(Dispatchers.Default) { //background work
 
-                        val polygonWKT = boundsToPolygonWKT(bounds)
-                        val pointWKT = "POINT(${center.longitude()} ${center.latitude()})"
+                            val mapView = mapViewRef.value ?: return@withContext
+                            val bounds = mapView.mapboxMap.coordinateBoundsForCamera(
+                                CameraOptions.Builder().center(center).zoom(zoom).build()
+                            )
 
-                        mittFiskeViewModel.loadLocations(polygonWKT, pointWKT)
+                            val polygonWKT = boundsToPolygonWKT(bounds)
+                            val pointWKT = "POINT(${center.longitude()} ${center.latitude()})"
 
-                        while (mittFiskeViewModel.uiState.value.isLoading) {
-                            delay(100)
-                        }
+                            mittFiskeViewModel.loadLocations(polygonWKT, pointWKT)
 
-                        val locations = mittFiskeViewModel.uiState.value.locations
-                        if (locations.isNotEmpty()) {
-                            viewModel.updateClusters(locations, zoom)
-                            viewModel.triggerDraw()
+                            while (mittFiskeViewModel.uiState.value.isLoading) {
+                                delay(100)
+                            }
 
-                            val manager = annotationManagerRef.value ?: return@collect
-                            manager.deleteAll()
+                            val locations = mittFiskeViewModel.uiState.value.locations
 
-                            viewModel.clusters.value.forEach { cluster ->
-                                val bitmap = BitmapFactory.decodeResource(mapView.context.resources, R.drawable.yallaimg)
-                                val options = PointAnnotationOptions()
-                                    .withPoint(cluster.center)
-                                    .withIconImage(bitmap)
-                                    .withIconSize(if (cluster.spots.size == 1) 0.04 else 0.040)
-                                    .withTextField(cluster.spots.size.toString())
-                                    .withTextOffset(listOf(0.0, -2.0))
-                                    .withTextSize(12.0)
+                            if (locations.isNotEmpty()) {
+                                viewModel.updateClusters(locations, zoom)
+                                viewModel.triggerDraw()
 
-                                manager.create(options)
+                                withContext(Dispatchers.Main) { // Bare UI-arbeid
+                                    val manager = annotationManagerRef.value ?: return@withContext
+                                    manager.deleteAll()
+                                    Log.d("Annotation", "Sletter alle")
+
+                                    val bitmap = BitmapFactory.decodeResource(mapView.context.resources, R.drawable.yallaimg)
+
+                                    viewModel.clusters.value.forEach { cluster ->
+                                        val options = PointAnnotationOptions()
+                                            .withPoint(cluster.center)
+                                            .withIconImage(bitmap)
+                                            .withIconSize(if (cluster.spots.size == 1) 0.04 else 0.040)
+                                            .withTextField(cluster.spots.size.toString())
+                                            .withTextOffset(listOf(0.0, -2.0))
+                                            .withTextSize(12.0)
+                                        manager.create(options)
+                                    }
+                                }
                             }
                         }
                     }
