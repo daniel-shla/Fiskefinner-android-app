@@ -26,7 +26,7 @@ class FrostDataSource {
             headers {
                 append("Authorization", apiKey)
             }
-            parameter("sources", "SN18700")
+            // parameter("sources", "SN18700") // trengs ikke egt
             parameter("elements", "air_temperature, wind_speed, precipitation_amount")
         }.body()
     }

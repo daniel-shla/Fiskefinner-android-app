@@ -24,17 +24,42 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
-import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.WeatherData
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
 
 @Composable
 fun WeatherCard(weatherData: TimeSeries?) {
-    val viewModel: WeatherViewModel = viewModel()
+    val weatherViewModel: WeatherViewModel = viewModel()
+    val predictionViewModel: PredictionViewModel = viewModel()
+
+    // hente værdata fra locationforecast for prediction
+    val uiState by weatherViewModel.uiState.collectAsState()
+
+    // vent mens værdata lastes inn
+    val (temperature, windSpeed, precipitation) = when (uiState) {
+        is WeatherUiState.Success -> weatherViewModel.getWeatherForPrediction()
+        else -> Triple(0.0, 0.0, 0.0) // standardverdier mens vi laster
+    }
+
+    // start prediksjon
+    LaunchedEffect(temperature, windSpeed, precipitation) {
+        predictionViewModel.predictFishingConditions(
+            temp = temperature.toFloat(),
+            wind = windSpeed.toFloat(),
+            precipitation = precipitation.toFloat()
+        )
+    }
+
+    val predictionText by predictionViewModel.predictionText.collectAsState()
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -132,7 +157,7 @@ fun WeatherCard(weatherData: TimeSeries?) {
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "God dag for fiske!",
+                        text = predictionText, // vise prediction text <3
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer

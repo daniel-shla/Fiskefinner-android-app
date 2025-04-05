@@ -35,7 +35,6 @@ class MittFiskeDataSource(
             val response: HttpResponse = client.get(url)
             val raw = response.bodyAsText()
 
-            Log.d("MittFiske", "RAW JSON: $raw")
 
             val jsonArray = JSONArray(raw)
             val result = mutableListOf<MittFiskeLocation>()

@@ -65,4 +65,15 @@ class WeatherViewModel() : ViewModel() {
         return listOf(timeseries.first())
     }
 
+    fun getWeatherForPrediction(): Triple<Double, Double, Double> {
+        val weather = (uiState.value as? WeatherUiState.Success)?.weather ?: return Triple(0.0, 0.0, 0.0)
+
+        val timeseries = weather.properties.timeseries.firstOrNull()
+        val temperature = timeseries?.data?.instant?.details?.air_temperature ?: 0.0
+        val windSpeed = timeseries?.data?.instant?.details?.wind_speed ?: 0.0
+        val precipitation = 0.0 //timeseries?.data?.instant?.details?.precipitation_amount ?: 0.0
+
+        return Triple(temperature, windSpeed, precipitation)
+    }
+
 }

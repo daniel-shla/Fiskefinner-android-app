@@ -169,10 +169,10 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         val maxDistance = when (zoom.toInt()) {
             in 0..4 -> 250000.0
             5 -> 220000.0
-            6 -> 200000.0
-            7 -> 17000.0
-            8 -> 15000.0
-            9 -> 10000.0
+            6 -> 210000.0
+            7 -> 30000.0
+            8 -> 20000.0
+            9 -> 13000.0
             10 -> 8000.0
             11 -> 6000.0
             12 -> 4000.0
