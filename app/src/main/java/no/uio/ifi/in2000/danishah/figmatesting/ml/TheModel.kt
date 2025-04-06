@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.ml
 
 import android.content.Context
+import android.util.Log
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.FrostRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.FrostDataSource
@@ -29,6 +30,7 @@ class TheModel {
 
     private fun train(data: List<TrainingData>, epochs: Int, learningRate: Float) {
         for (epoch in 1..epochs) {
+            Log.d("train", "$epoch starter")
             for (sample in data) {
                 val inputs = floatArrayOf(sample.temperature, sample.windSpeed, sample.precipitation)
                 val target = classifyFishingConditions(sample.fishCaught)
@@ -65,7 +67,7 @@ class TheModel {
                     }
                 }
             }
-            println("Epoch $epoch fullført")
+            Log.d("train", "$epoch fullført")
         }
     }
 
