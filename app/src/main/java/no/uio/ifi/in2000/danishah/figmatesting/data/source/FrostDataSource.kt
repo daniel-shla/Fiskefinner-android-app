@@ -1,10 +1,12 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.source
 
+import android.util.Base64
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FrostResponse
@@ -23,11 +25,14 @@ class FrostDataSource {
     suspend fun fetchFrostData(): FrostResponse {
         val apiKey = "fa254c11-8d5c-4dd0-9f37-7cdd1eba9816"
         return client.get("https://frost.met.no/observations/v0.jsonld") {
-            headers {
+            /* headers {
                 append("Authorization", apiKey)
             }
-            // parameter("sources", "SN18700") // trengs ikke egt
-            parameter("elements", "air_temperature, wind_speed, precipitation_amount")
+             */
+            parameter("sources", "SN18700")
+            parameter("elements", "air_temperature,wind_speed,precipitation_amount")
+            parameter("referencetime", "2024-04-01/2024-04-10")
+            header(HttpHeaders.Authorization, "Basic ${Base64.encodeToString(apiKey.toByteArray(), Base64.NO_WRAP)}")
         }.body()
     }
 }

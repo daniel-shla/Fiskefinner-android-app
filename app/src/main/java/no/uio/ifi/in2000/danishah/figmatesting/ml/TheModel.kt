@@ -1,9 +1,11 @@
 package no.uio.ifi.in2000.danishah.figmatesting.ml
 
 import android.content.Context
+import android.util.Log
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.FrostRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.FrostDataSource
+import java.io.File
 import kotlin.math.exp
 
 class TheModel {
@@ -18,17 +20,31 @@ class TheModel {
     private val biasOutput = FloatArray(outputSize) { 0f }
 
     suspend fun startTraining(context: Context) {
-        val mlDataProcessor = MLDataProcessor(FrostRepository(FrostDataSource()))
-        val trainingData = mlDataProcessor.getCombinedTrainingData(context)
-
-        val mlModel = TheModel()
-        mlModel.train(trainingData, epochs = 100, learningRate = 0.01f)
-
-        println("Trening fullført med både Frost API-data og syntetiske data!")
+        val cacheFile = File(context.filesDir, "model_cache.json")
+        if (!cacheFile.exists()) {
+            // kopier fra assets hvis cache ikke finnes
+            try {
+                context.assets.open("model_cache.json").use { input ->
+                    cacheFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                Log.d("TheModel", "Modell kopiert fra assets")
+            } catch (e: Exception) {
+                Log.e("TheModel", "Trener ny modell, kunne ikke hente modell fra assets")
+                val mlDataProcessor = MLDataProcessor(FrostRepository(FrostDataSource()))
+                val trainingData = mlDataProcessor.getCombinedTrainingData(context)
+                train(trainingData, epochs = 100, learningRate = 0.01f)
+                saveModelToFile(context)
+            }
+        }
+        Log.d("TheModel", "Laster modell fra fil")
+        loadModelFromFile(context)
     }
 
     private fun train(data: List<TrainingData>, epochs: Int, learningRate: Float) {
         for (epoch in 1..epochs) {
+            Log.d("train", "$epoch starter")
             for (sample in data) {
                 val inputs = floatArrayOf(sample.temperature, sample.windSpeed, sample.precipitation)
                 val target = classifyFishingConditions(sample.fishCaught)
@@ -65,7 +81,7 @@ class TheModel {
                     }
                 }
             }
-            println("Epoch $epoch fullført")
+            Log.d("train", "$epoch fullført")
         }
     }
 
@@ -99,5 +115,47 @@ class TheModel {
             fishCaught in 1..2 -> floatArrayOf(0f, 1f, 0f) // Gode forhold
             else -> floatArrayOf(0f, 0f, 1f) // Helt ålreit
         }
+    }
+
+    // funksjon for å konvertere ML-modell til en CachedModel og lagre
+    private fun saveModelToFile(context: Context) {
+        val model = CachedModel(
+            weightsInputHidden.map { it.toList() },
+            weightsHiddenOutput.map { it.toList() },
+            biasHidden.toList(),
+            biasOutput.toList()
+        )
+        val json = kotlinx.serialization.json.Json.encodeToString(CachedModel.serializer(), model)
+        val file = File(context.filesDir, "model_cache.json")
+        file.writeText(json)
+    }
+
+    // funksjon for å laste modellen fra fil
+    private fun loadModelFromFile(context: Context): Boolean {
+        val file = File(context.filesDir, "model_cache.json")
+        if (!file.exists()) return false
+
+        val json = file.readText()
+        val model = kotlinx.serialization.json.Json.decodeFromString(CachedModel.serializer(), json)
+
+        // overfør data til feltene
+        for (i in weightsInputHidden.indices) {
+            for (j in weightsInputHidden[0].indices) {
+                weightsInputHidden[i][j] = model.weightsInputHidden[i][j]
+            }
+        }
+        for (i in weightsHiddenOutput.indices) {
+            for (j in weightsHiddenOutput[0].indices) {
+                weightsHiddenOutput[i][j] = model.weightsHiddenOutput[i][j]
+            }
+        }
+        for (i in biasHidden.indices) {
+            biasHidden[i] = model.biasHidden[i]
+        }
+        for (i in biasOutput.indices) {
+            biasOutput[i] = model.biasOutput[i]
+        }
+
+        return true
     }
 }
