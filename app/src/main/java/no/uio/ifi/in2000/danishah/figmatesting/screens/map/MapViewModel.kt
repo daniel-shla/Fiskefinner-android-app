@@ -54,7 +54,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
     // Current zoom level
     private val _zoomLevel = MutableStateFlow(LocationDataSource.COUNTRY_ZOOM)
     val zoomLevel = _zoomLevel.asStateFlow()
-    
+
     // Debounce search job
     private var searchJob: Job? = null
 
@@ -252,4 +252,5 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             }
         }
     }
-} 
+}
+
