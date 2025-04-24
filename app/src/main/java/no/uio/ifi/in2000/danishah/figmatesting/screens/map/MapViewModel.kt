@@ -239,6 +239,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
     fun zoomOut() {
         _zoomLevel.value = (_zoomLevel.value - 1.0).coerceAtLeast(1.0)
     }
+
     
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
