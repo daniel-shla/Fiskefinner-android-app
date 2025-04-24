@@ -30,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -291,8 +293,15 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { viewModel.updateSearchQuery(it) },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Søk etter norske byer...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp), // Litt høyere enn 48dp, men fortsatt kompakt
+                placeholder = {
+                    Text(
+                        "Søk etter norske byer...",
+                        style = MaterialTheme.typography.bodySmall // mindre font for å passe inn
+                    )
+                },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     IconButton(onClick = {
@@ -307,7 +316,11 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 },
                 shape = RoundedCornerShape(8.dp),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         if (searchQuery.isNotEmpty()) {
@@ -318,6 +331,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                     }
                 )
             )
+
 
             // Show search results as a dropdown
             if (isSearchActive) {
@@ -333,7 +347,11 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                         showMinCharsHint = showMinCharsHint,
                         onSuggestionClick = { suggestion ->
                             viewModel.selectSuggestion(suggestion)
+                            viewModel.navigateToLocation(suggestion) // naviger kartet
+                            viewModel.setSearchActive(false)         // skjul resultatlista
+                            focusManager.clearFocus()                // skjul tastatur
                         }
+
                     )
                 }
             }

@@ -33,20 +33,21 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
 @Composable
 fun SearchResultsCard(
     isLoading: Boolean,
+    isError: Boolean = false,
     searchResults: List<SearchSuggestion>,
     searchQuery: String,
     showMinCharsHint: Boolean,
     onSuggestionClick: (SearchSuggestion) -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .zIndex(1f), // Ensure it appears above other content
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        when {
-            isLoading -> {
+    when {
+        isLoading -> {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -59,24 +60,46 @@ fun SearchResultsCard(
                     )
                 }
             }
-            searchResults.isNotEmpty() -> {
-                // Show search suggestions
+        }
+
+        isError -> {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Text(
+                    text = "Noe gikk galt med søket. Prøv igjen.",
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+
+        searchResults.isNotEmpty() -> {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
                 LazyColumn(
                     modifier = Modifier
                         .padding(vertical = 8.dp)
-                        .heightIn(max = 300.dp) // maks 4 suggestions, ikke endre denne
+                        .heightIn(max = 300.dp)
                 ) {
-                    items(searchResults) { suggestion ->
+                    items(searchResults.take(4)) { suggestion ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    onSuggestionClick(suggestion)
-                                }
+                                .clickable { onSuggestionClick(suggestion) }
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Show appropriate icon based on feature type
                             val icon = when {
                                 suggestion.maki != null -> Icons.Default.Place
                                 suggestion.featureType == "address" -> Icons.Default.LocationOn
@@ -98,7 +121,6 @@ fun SearchResultsCard(
                                     fontWeight = FontWeight.Medium
                                 )
 
-                                // Show address or place information if available
                                 suggestion.fullAddress?.let {
                                     Text(
                                         text = it,
@@ -117,25 +139,55 @@ fun SearchResultsCard(
                     }
                 }
             }
-            showMinCharsHint -> {
+        }
+
+        showMinCharsHint -> {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
                 Text(
                     text = "Skriv minst 3 tegn for å søke",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-            searchQuery.length >= 3 -> {
-                // Show "No results" message
+        }
+
+        searchQuery.length >= 3 -> {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
                 Text(
                     text = "Ingen steder funnet som matcher '$searchQuery'",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        else -> {
+            // Fallback for helt tomt søk
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Text(
+                    text = "Søk etter steder for å se forslag",
+                    modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
     }
-} 
+}
