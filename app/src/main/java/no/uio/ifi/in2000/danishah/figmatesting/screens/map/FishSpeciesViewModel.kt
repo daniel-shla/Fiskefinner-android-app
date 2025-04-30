@@ -42,7 +42,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
     
     // Maximum number of species that can be enabled at once
-    private val maxConcurrentSpecies = 2
+    private val maxConcurrentSpecies = 8
     
     init {
         loadAvailableSpecies()
@@ -80,7 +80,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         if (newEnabled) {
             val currentlyEnabled = currentStates.values.count { it.isEnabled }
             if (currentlyEnabled >= maxConcurrentSpecies) {
-                _errorMessage.value = "Maksimalt $maxConcurrentSpecies arter kan vises samtidig for å unngå minneproblemer."
+                _errorMessage.value = "Maksimalt $maxConcurrentSpecies arter kan vises samtidig."
                 return
             }
         }
@@ -162,8 +162,20 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     data class SpeciesState(
         val species: FishSpeciesData,
         val isEnabled: Boolean,
-        val isLoaded: Boolean
+        val isLoaded: Boolean,
+        val opacity: Float = 1.0f  // Default full opacity
     )
+    
+    /**
+     * Update the opacity (visibility) of a species
+     */
+    fun updateSpeciesOpacity(scientificName: String, opacity: Float) {
+        val currentStates = _speciesStates.value.toMutableMap()
+        val currentState = currentStates[scientificName] ?: return
+        
+        currentStates[scientificName] = currentState.copy(opacity = opacity)
+        _speciesStates.value = currentStates
+    }
     
     /**
      * Factory for creating the ViewModel with the application context

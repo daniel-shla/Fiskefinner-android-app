@@ -37,6 +37,11 @@ class FishSpeciesRepository(private val context: Context) {
             "salvelinus_alpinus",
             "perca_fluviatilis"
         )
+        
+        // Map of species to custom sampling rates for very large files
+        private val SPECIES_SAMPLING_RATES = mapOf(
+            "pollachius_virens" to 20 // Sample every 20th polygon for sei
+        )
     }
     
     /**
@@ -58,30 +63,42 @@ class FishSpeciesRepository(private val context: Context) {
     suspend fun loadFishSpeciesPolygons(scientificName: String): FishSpeciesData? {
         return withContext(Dispatchers.IO) {
             try {
-                // Format the file name based on scientific name
-                val jsonFileName = "${scientificName.replace("_", " ")}.json"
-                val fixedFileName = if (!assetExists(jsonFileName)) {
-                    // Try alternative formats if the default one doesn't exist
-                    val alternativeNames = listOf(
-                        "${scientificName}.json",                              // dicentrarchus_labrax.json
-                        "${scientificName.split("_").last()}.json",            // labrax.json
-                        "${scientificName.split("_").first()}.json"            // dicentrarchus.json
-                    )
-                    
-                    alternativeNames.find { assetExists(it) } ?: jsonFileName
-                } else {
-                    jsonFileName
+                // First try the simplified version, then fall back to the original
+                val simplifiedFileName = "simplified_${scientificName}.json"
+                val originalFileName = "${scientificName.replace("_", " ")}.json"
+                
+                // Try simplified file first, then the original formats
+                val fileNameToUse = when {
+                    assetExists(simplifiedFileName) -> {
+                        Log.d(TAG, "Using simplified data file: $simplifiedFileName")
+                        simplifiedFileName
+                    }
+                    assetExists(originalFileName) -> originalFileName
+                    else -> {
+                        // Try alternative formats if neither simplified nor original exists
+                        val alternativeNames = listOf(
+                            "${scientificName}.json",                         // dicentrarchus_labrax.json
+                            "${scientificName.split("_").last()}.json",       // labrax.json
+                            "${scientificName.split("_").first()}.json"       // dicentrarchus.json
+                        )
+                        
+                        alternativeNames.find { assetExists(it) } ?: originalFileName
+                    }
                 }
                 
-                Log.d(TAG, "Loading fish species data from $fixedFileName")
+                Log.d(TAG, "Loading fish species data from $fileNameToUse")
                 
-                if (!assetExists(fixedFileName)) {
-                    Log.e(TAG, "File $fixedFileName does not exist in assets")
+                if (!assetExists(fileNameToUse)) {
+                    Log.e(TAG, "File $fileNameToUse does not exist in assets")
                     return@withContext null
                 }
                 
+                // Get file size to determine if we need special handling
+                val fileSize = getAssetFileSize(fileNameToUse)
+                Log.d(TAG, "File size of $fileNameToUse: ${fileSize / (1024 * 1024)} MB")
+                
                 // Parse the GeoJSON file with streaming to avoid memory issues
-                context.assets.open(fixedFileName).use { inputStream ->
+                context.assets.open(fileNameToUse).use { inputStream ->
                     val reader = BufferedReader(InputStreamReader(inputStream))
                     val geoJsonData = gson.fromJson(reader, GeoJsonFishData::class.java)
                     
@@ -92,11 +109,21 @@ class FishSpeciesRepository(private val context: Context) {
                         // Convert to our internal format
                         val fishSpeciesData = geoJsonData.toFishSpeciesData(scientificName)
                         
-                        Log.d(TAG, "Converted GeoJSON to ${fishSpeciesData.polygons.size} polygons for ${fishSpeciesData.scientificName}")
+                        // Apply additional sampling for very large files
+                        val samplingRate = SPECIES_SAMPLING_RATES[scientificName] ?: 1
+                        val sampledPolygons = if (samplingRate > 1) {
+                            Log.d(TAG, "Applying sampling rate of 1:$samplingRate for $scientificName")
+                            fishSpeciesData.polygons.filterIndexed { index, _ -> index % samplingRate == 0 }
+                        } else {
+                            fishSpeciesData.polygons
+                        }
                         
-                        return@withContext fishSpeciesData
+                        val result = fishSpeciesData.copy(polygons = sampledPolygons)
+                        Log.d(TAG, "Converted GeoJSON to ${result.polygons.size} polygons for ${result.scientificName}")
+                        
+                        return@withContext result
                     } else {
-                        Log.e(TAG, "No features found in GeoJSON file $fixedFileName")
+                        Log.e(TAG, "No features found in GeoJSON file $fileNameToUse")
                         null
                     }
                 }
@@ -115,6 +142,18 @@ class FishSpeciesRepository(private val context: Context) {
             context.assets.open(fileName).use { true }
         } catch (e: Exception) {
             false
+        }
+    }
+    
+    /**
+     * Get the size of an asset file in bytes
+     */
+    private fun getAssetFileSize(fileName: String): Long {
+        return try {
+            context.assets.openFd(fileName).length
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not determine file size for $fileName", e)
+            -1
         }
     }
 } 

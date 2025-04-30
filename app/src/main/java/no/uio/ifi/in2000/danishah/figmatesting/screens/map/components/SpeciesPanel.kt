@@ -16,19 +16,26 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -103,7 +110,7 @@ fun SpeciesPanel(
             
             // Info text about limitations
             Text(
-                text = "Merk: For å unngå minneproblemer kan kun 2 arter vises samtidig.",
+                text = "Du kan nå vise opptil 8 fiskearter samtidig på kartet.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -122,8 +129,12 @@ fun SpeciesPanel(
                         scientificName = scientificName.replace("_", " "),
                         isChecked = state.isEnabled,
                         isLoading = isLoading && !state.isLoaded && state.isEnabled,
+                        opacity = state.opacity,
                         onToggle = { 
                             viewModel.toggleSpecies(scientificName)
+                        },
+                        onOpacityChange = { newOpacity ->
+                            viewModel.updateSpeciesOpacity(scientificName, newOpacity)
                         }
                     )
                     
@@ -143,56 +154,94 @@ private fun SpeciesToggleRow(
     scientificName: String,
     isChecked: Boolean,
     isLoading: Boolean,
-    onToggle: () -> Unit
+    opacity: Float,
+    onToggle: () -> Unit,
+    onOpacityChange: (Float) -> Unit
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = 8.dp)
     ) {
-        // Fish species color indicator
-        if (isChecked) {
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(getColorForSpecies(scientificName))
-            )
-        } else {
-            Spacer(modifier = Modifier.width(16.dp))
-        }
-        
-        Spacer(modifier = Modifier.width(8.dp))
-        
-        // Species info
-        Column(
-            modifier = Modifier.weight(1f)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.alpha(1.0f)
         ) {
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold
-            )
+            // Fish species color indicator
+            if (isChecked) {
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(getColorForSpecies(scientificName))
+                )
+            } else {
+                Spacer(modifier = Modifier.width(16.dp))
+            }
             
-            Text(
-                text = scientificName,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Light
-            )
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            // Species info
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Text(
+                    text = scientificName,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Light
+                )
+            }
+            
+            // Loading indicator or toggle
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Switch(
+                    checked = isChecked,
+                    onCheckedChange = { onToggle() }
+                )
+            }
         }
         
-        // Loading indicator or toggle
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(24.dp),
-                strokeWidth = 2.dp
-            )
-        } else {
-            Switch(
-                checked = isChecked,
-                onCheckedChange = { onToggle() }
-            )
+        // Only show opacity slider if species is enabled
+        if (isChecked) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 24.dp)
+            ) {
+                Icon(
+                    imageVector = if (opacity < 0.1f) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    contentDescription = "Visibility",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                Slider(
+                    value = opacity,
+                    onValueChange = onOpacityChange,
+                    valueRange = 0f..1f,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp)
+                )
+                
+                // Display opacity percentage
+                Text(
+                    text = "${(opacity * 100).toInt()}%",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.width(32.dp)
+                )
+            }
         }
     }
 }

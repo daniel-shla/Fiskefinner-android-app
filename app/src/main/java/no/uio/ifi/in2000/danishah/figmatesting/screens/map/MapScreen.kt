@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
 import android.graphics.BitmapFactory
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,12 +11,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
@@ -41,11 +46,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -84,7 +92,6 @@ import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.getColorFo
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModelFactory
 import android.graphics.Color as AndroidColor
-
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -162,7 +169,6 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
         // Get all enabled species
         val enabledSpecies = speciesStates.values
             .filter { it.isEnabled && it.isLoaded }
-            .map { it.species }
         
         Log.d("FishPolygons", "Enabled species count: ${enabledSpecies.size}")
         
@@ -170,14 +176,19 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
         polygonAnnotationManagerRef.value?.deleteAll()
         
         // Draw each enabled species
-        enabledSpecies.forEach { species ->
-            if (species.polygons.isNotEmpty()) {
-                Log.d("FishPolygons", "Drawing ${species.polygons.size} polygons for ${species.commonName}")
+        enabledSpecies.forEach { state ->
+            if (state.species.polygons.isNotEmpty()) {
+                Log.d("FishPolygons", "Drawing ${state.species.polygons.size} polygons for ${state.species.commonName} with opacity: ${state.opacity}")
                 polygonAnnotationManagerRef.value?.let { manager ->
-                    drawFishSpeciesPolygons(manager, species, getColorForSpecies(species.scientificName))
+                    drawFishSpeciesPolygons(
+                        manager, 
+                        state.species, 
+                        getColorForSpecies(state.species.scientificName),
+                        state.opacity
+                    )
                 }
             } else {
-                Log.e("FishPolygons", "No polygons available for ${species.scientificName}")
+                Log.e("FishPolygons", "No polygons available for ${state.species.scientificName}")
             }
         }
     }
@@ -422,36 +433,58 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(16.dp),
+                        .padding(16.dp)
+                        .heightIn(max = 300.dp) // Limit height and make scrollable if needed
+                        .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    enabledSpecies.forEach { state ->
-                        Text(
-                            text = state.species.commonName,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        
-                        Text(
-                            text = "Vitenskapelig navn: ${state.species.scientificName.replace("_", " ")}",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                    Text(
+                        text = "Aktive fiskearter",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    for (state in enabledSpecies) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Color indicator
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(getColorForSpecies(state.species.scientificName))
+                                    .alpha(state.opacity)
+                            )
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            
+                            // Species name and polygon count
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = state.species.commonName,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                
+                                Text(
+                                    text = "${state.species.polygons.size} polygoner",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
                     }
                     
-                    // Close button
-                    SmallFloatingActionButton(
-                        onClick = { 
-                            enabledSpecies.forEach { state ->
-                                fishSpeciesViewModel.toggleSpecies(state.species.scientificName)
-                            }
-                            polygonAnnotationManagerRef.value?.deleteAll()
-                        },
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .size(30.dp)
-                    ) {
-                        Text("X")
-                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "For å justere synlighet, trykk på fiskearter-knappen.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -523,11 +556,13 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
 private fun drawFishSpeciesPolygons(
     polygonManager: PolygonAnnotationManager?, 
     fishSpecies: FishSpeciesData,
-    color: Color
+    color: Color,
+    opacity: Float
 ) {
     Log.d("FishPolygons", "Starting to draw polygons for ${fishSpecies.scientificName}")
     
-    val maxPolygons = 1000
+    // Increased max polygons to take advantage of simplified files
+    val maxPolygons = 2000 // Increased from 1000
     val polygonsToShow = if (fishSpecies.polygons.size > maxPolygons) {
         Log.d("FishPolygons", "Limiting from ${fishSpecies.polygons.size} to $maxPolygons polygons")
         val step = fishSpecies.polygons.size / maxPolygons
@@ -536,26 +571,49 @@ private fun drawFishSpeciesPolygons(
         fishSpecies.polygons
     }
     
-    val fillColor = "#CCFF0000" // Bright red, 80% opacity
+    // Use the provided color parameter for fill color
+    val fillOpacity = opacity
+    val fillColor = "#CC${color.toArgb().toHexString().substring(2)}" // Use the provided color with CC alpha
     val outlineColor = "#FF000000" // Solid black
     var firstPolygonFirstPoint: Point? = null
     
-    polygonsToShow.forEachIndexed { idx, polygon ->
-        if (polygon.size < 3) return@forEachIndexed
-        val points = polygon.map { (lat, lng) -> Point.fromLngLat(lng, lat) }
-        val closedPoints = if (points.first() != points.last()) points + points.first() else points
-        if (idx == 0) firstPolygonFirstPoint = closedPoints.firstOrNull()
-        val polygonOptions = PolygonAnnotationOptions()
-            .withPoints(listOf(closedPoints))
-            .withFillColor(AndroidColor.parseColor(fillColor))
-            .withFillOpacity(0.8)
-            .withFillOutlineColor(AndroidColor.parseColor(outlineColor))
-        polygonManager?.create(polygonOptions)
+    // Batch processing polygons to improve performance
+    val batchSize = 100
+    val batches = polygonsToShow.chunked(batchSize)
+    
+    batches.forEach { batchPolygons ->
+        val batchAnnotations = batchPolygons.mapNotNull { polygon ->
+            if (polygon.size < 3) return@mapNotNull null
+            
+            val points = polygon.map { (lat, lng) -> Point.fromLngLat(lng, lat) }
+            val closedPoints = if (points.first() != points.last()) points + points.first() else points
+            
+            if (firstPolygonFirstPoint == null) {
+                firstPolygonFirstPoint = closedPoints.firstOrNull()
+            }
+            
+            PolygonAnnotationOptions()
+                .withPoints(listOf(closedPoints))
+                .withFillColor(AndroidColor.parseColor(fillColor))
+                .withFillOpacity(fillOpacity.toDouble())
+                .withFillOutlineColor(AndroidColor.parseColor(outlineColor))
+        }
+        
+        // Create polygon annotations in batch
+        polygonManager?.create(batchAnnotations)
     }
+    
     // Store the first polygon's first point for teleportation
     if (firstPolygonFirstPoint != null) {
         lastFirstPolygonPoint = firstPolygonFirstPoint
     }
+    
+    Log.d("FishPolygons", "Created ${polygonsToShow.size} polygons for ${fishSpecies.scientificName}")
+}
+
+// Extension function to convert Int color to hex string
+private fun Int.toHexString(): String {
+    return String.format("%08X", this)
 }
 
 // Store the last first polygon point for teleportation
@@ -579,4 +637,26 @@ fun boundsToPolygonWKT(bounds: CoordinateBounds): String {
             "${ne.longitude()} ${ne.latitude()}, " +
             "${sw.longitude()} ${ne.latitude()}" +
             "))"
+}
+
+// Function to get a unique color for each species
+private fun getColorForSpecies(scientificName: String): Color {
+    // Map of species to specific colors
+    val speciesColors = mapOf(
+        "gadus_morhua" to Color(0xFF0277BD),           // Dark blue
+        "melanogrammus_aeglefinus" to Color(0xFF558B2F), // Green
+        "pollachius_virens" to Color(0xFFF57F17),      // Yellow/orange
+        "scomber_scombrus" to Color(0xFF6A1B9A),       // Purple
+        "pleuronectes_platessa" to Color(0xFFD81B60),  // Pink
+        "hippoglossus_hippoglossus" to Color(0xFF1B5E20), // Dark green
+        "dicentrarchus_labrax" to Color(0xFF4E342E),   // Brown 
+        "anarhichas_lupus" to Color(0xFFE64A19),       // Orange
+        "esox_lucius" to Color(0xFF0097A7),            // Teal
+        "salmo_salar" to Color(0xFFEF5350),            // Red 
+        "salvelinus_alpinus" to Color(0xFF7E57C2),     // Light purple
+        "perca_fluviatilis" to Color(0xFF689F38)       // Light green
+    )
+    
+    // Return the specific color for this species or a default if not found
+    return speciesColors[scientificName] ?: Color(0xFFFF0000) // Default to red
 }
