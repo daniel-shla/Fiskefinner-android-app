@@ -10,7 +10,7 @@ import kotlin.math.exp
 
 class TheModel {
 
-    private val inputSize = 3  // Temperatur, vindhastighet, nedbør
+    private val inputSize = 9 // ant variabler/faktorer i TrainingData
     private val hiddenSize = 16
     private val outputSize = 3  // Tre klasser: Dårlig, God, Helt ålreit
 
@@ -21,9 +21,15 @@ class TheModel {
 
     suspend fun startTraining(context: Context) {
         val cacheFile = File(context.filesDir, "model_cache.json")
+
+        // !!!!!!!!!BRUK DEN HER BARE HVIS DU HAR ENDRET NOE I MODELLEN!!!!!!!!!!
+        // den sletter hele modellen fra cache så en ny må trenes
+        // if (cacheFile.exists()) cacheFile.delete()
+
         if (!cacheFile.exists()) {
             // kopier fra assets hvis cache ikke finnes
             try {
+                Log.d("TheModel", "Kopierer modell fra cache")
                 context.assets.open("model_cache.json").use { input ->
                     cacheFile.outputStream().use { output ->
                         input.copyTo(output)
@@ -43,10 +49,21 @@ class TheModel {
     }
 
     private fun train(data: List<TrainingData>, epochs: Int, learningRate: Float) {
+        val processor = MLDataProcessor(FrostRepository(FrostDataSource()))
         for (epoch in 1..epochs) {
             Log.d("train", "$epoch starter")
             for (sample in data) {
-                val inputs = floatArrayOf(sample.temperature, sample.windSpeed, sample.precipitation)
+                val inputs = floatArrayOf(
+                    processor.normalizeTemperature(sample.temperature),
+                    processor.normalizeWindSpeed(sample.windSpeed),
+                    processor.normalizePrecipitation(sample.precipitation),
+                    processor.normalizeAirPressure(sample.airPressure),
+                    processor.normalizeCloudCover(sample.cloudCover),
+                    processor.normalizeTimeOfDay(sample.timeOfDay),
+                    processor.normalizeSeason(sample.season),
+                    processor.normalizeLatitude(sample.latitude),
+                    processor.normalizeLongitude(sample.longitude)
+                )
                 val target = classifyFishingConditions(sample.fishCaught)
 
                 // forward pass
@@ -86,6 +103,8 @@ class TheModel {
     }
 
     fun predict(input: FloatArray): Int {
+        require(input.size == inputSize)
+
         val hidden = FloatArray(hiddenSize)
         for (i in 0 until hiddenSize) {
             hidden[i] = relu(input.indices.map { j -> input[j] * weightsInputHidden[j][i] }.sum() + biasHidden[i])

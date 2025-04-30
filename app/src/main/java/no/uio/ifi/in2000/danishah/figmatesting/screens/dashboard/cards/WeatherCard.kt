@@ -1,6 +1,8 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards
 
 import TimeSeries
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,9 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
+import java.time.LocalDate
+import java.time.LocalTime
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun WeatherCard(weatherData: TimeSeries?) {
     val weatherViewModel: WeatherViewModel = viewModel()
@@ -50,12 +56,32 @@ fun WeatherCard(weatherData: TimeSeries?) {
     }
 
     // start prediksjon
-    LaunchedEffect(temperature, windSpeed, precipitation) {
-        predictionViewModel.predictFishingConditions(
-            temp = temperature.toFloat(),
-            wind = windSpeed.toFloat(),
-            precipitation = precipitation.toFloat()
-        )
+    LaunchedEffect(weatherData) {
+        val details = weatherData?.data?.instant?.details
+
+        if (details != null) {
+            val trainingInput = TrainingData(
+                temperature = details.air_temperature.toFloat(),
+                windSpeed = details.wind_speed.toFloat(),
+                precipitation = weatherData.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
+                airPressure = details.air_pressure_at_sea_level.toFloat(),
+                cloudCover = details.cloud_area_fraction.toFloat(),
+
+                // utlede ELLER hardkode (:
+                timeOfDay = LocalTime.now().hour.toFloat(), // f.eks. 13.0
+                season = when (LocalDate.now().monthValue) {
+                    in 3..5 -> 1f // vår
+                    in 6..8 -> 2f //sommer
+                    in 9..11 -> 3f
+                    else -> 4f },
+                // season = getSeason(LocalDate.now().monthValue), // SLETTET funksjon nedenfor
+                latitude = 59.9f, // Oslo-ish
+                longitude = 10.75f,
+                fishCaught = 0 // dummy, ikke brukt i prediction
+            )
+
+            predictionViewModel.predictFishingConditions(trainingInput)
+        }
     }
 
     val predictionText by predictionViewModel.predictionText.collectAsState()
