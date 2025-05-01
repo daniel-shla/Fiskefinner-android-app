@@ -5,10 +5,9 @@ import com.mapbox.geojson.Point
 
 data class Cluster(
     val center: Point,
-    val spots: List<MittFiskeLocation>
+    val spots: List<MittFiskeLocation>,
+    val avgRating: Int? = null
 )
-
-
 
 
 @Serializable
@@ -16,7 +15,8 @@ data class MittFiskeLocation(
     val id: String,
     val name: String,
     val p: PointGeometry,
-    val locs: List<Loc>
+    val locs: List<Loc>,
+    val rating : Int? = null
 )
 
 fun MittFiskeLocation.toPoint(): Point {

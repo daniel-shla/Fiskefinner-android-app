@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -14,12 +15,19 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.toPoint
+import no.uio.ifi.in2000.danishah.figmatesting.data.repository.FrostRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.LocationRepository
+import no.uio.ifi.in2000.danishah.figmatesting.data.source.FrostDataSource
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
+import no.uio.ifi.in2000.danishah.figmatesting.ml.MLDataProcessor
+import no.uio.ifi.in2000.danishah.figmatesting.ml.TheModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.pow
@@ -28,33 +36,33 @@ import kotlin.math.sqrt
 
 
 class MapViewModel(private val repository: LocationRepository = LocationRepository()) : ViewModel() {
-    
+
     // Search query
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
-    
+
     // Search results from repository
     val searchResults = repository.searchResults
-    
+
     // Loading state
     val isLoading = repository.isLoading
-    
+
     // Search active state
     private val _isSearchActive = MutableStateFlow(false)
     val isSearchActive = _isSearchActive.asStateFlow()
-    
+
     // Selected suggestion
     private val _selectedSuggestion = MutableStateFlow<SearchSuggestion?>(null)
     val selectedSuggestion = _selectedSuggestion.asStateFlow()
-    
+
     // Current map center
     private val _mapCenter = MutableStateFlow(LocationDataSource.NORWAY_CENTER)
     val mapCenter = _mapCenter.asStateFlow()
-    
+
     // Current zoom level
     private val _zoomLevel = MutableStateFlow(LocationDataSource.COUNTRY_ZOOM)
     val zoomLevel = _zoomLevel.asStateFlow()
-    
+
     // Debounce search job
     private var searchJob: Job? = null
 
@@ -77,17 +85,17 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
     //Update search query and trigger search
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
-        
+
         // Cancel previous search job
         searchJob?.cancel()
-        
+
         // Clear selected suggestion when query changes
         _selectedSuggestion.value = null
-        
+
         if (query.length >= 3) {
             // Show search results popup as user types
             _isSearchActive.value = true
-            
+
             // Debounce search
             searchJob = viewModelScope.launch {
                 delay(300) // 300ms debounce
@@ -100,7 +108,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             }
         }
     }
-    
+
     fun selectSuggestion(suggestion: SearchSuggestion) {
         _selectedSuggestion.value = suggestion
         _searchQuery.value = suggestion.name
@@ -114,7 +122,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             _selectedSuggestion.value = null
         }
     }
-    
+
 
     fun searchAndNavigate(query: String) {
         // If we already have a selected suggestion, navigate to it
@@ -123,16 +131,16 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             setSearchActive(false)
             return
         }
-        
+
         // Otherwise perform a search and navigate to first result
         if (query.length < 3) return
-        
+
         viewModelScope.launch {
             // First search for the location
             repository.searchLocations(query, _mapCenter.value)
 
             delay(500)
-            
+
             // Navigate to the first result if available
             val results = searchResults.value
             if (results.isNotEmpty()) {
@@ -163,6 +171,16 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
     fun updateClusters(locations: List<MittFiskeLocation>, zoom: Double) {
         Log.d("ClusterDebug", "Zoom: $zoom, antall locations: ${locations.size}")
         _clusters.value = clusterLocations(locations, zoom)
+    }
+
+    fun initializeLocalModel(context: Context) {
+        viewModelScope.launch {
+            modelMutex.withLock {
+                if (localModel == null) {
+                    localModel = TheModel().also { it.startTraining(context) }
+                }
+            }
+        }
     }
 
     fun clusterLocations(locations: List<MittFiskeLocation>, zoom: Double): List<Cluster> {
@@ -205,7 +223,37 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         return clusters
     }
 
+    private var localModel: TheModel? = null
+    private val modelMutex = Mutex()
 
+    suspend fun predictForSpot(temp: Float, wind: Float, precip: Float): Int {
+        val processor = MLDataProcessor(FrostRepository(FrostDataSource()))
+        val input = processor.process(temp.toDouble(), wind.toDouble(), precip.toDouble())
+
+        return localModel?.predict(input) ?: 0
+    }
+
+
+    fun rankAllFishingspots(locations: List<MittFiskeLocation>) {
+        viewModelScope.launch {
+            val rankedLocations = locations.map { location ->
+                val temp = 10f
+                val wind = 5f
+                val precip = 1f
+
+                val rating = predictForSpot(temp, wind, precip)
+                location.copy(rating = rating)
+            }
+
+            _clusters.value = clusterLocations(rankedLocations, zoomLevel.value)
+        }
+    }
+
+
+
+    fun getWeatherForSpot (){
+
+    }
 
     // Navigate to a location
     fun navigateToLocation(suggestion: SearchSuggestion) {
@@ -217,30 +265,30 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             }
         }
     }
-    
+
     // Navigate directly to a point
     fun navigateToPoint(point: Point) {
         _mapCenter.value = point
         _zoomLevel.value = LocationDataSource.DETAIL_ZOOM
     }
-    
+
     // Update map position
     fun updateMapPosition(center: Point, zoom: Double) {
         _mapCenter.value = center
         _zoomLevel.value = zoom
     }
-    
+
     // Zoom in
     fun zoomIn() {
         _zoomLevel.value = (_zoomLevel.value + 1.0).coerceAtMost(18.0)
     }
-    
+
     // Zoom out
     fun zoomOut() {
         _zoomLevel.value = (_zoomLevel.value - 1.0).coerceAtLeast(1.0)
     }
 
-    
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -253,4 +301,4 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             }
         }
     }
-} 
+}

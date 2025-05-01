@@ -3,9 +3,11 @@ package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.FrostRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.FrostDataSource
 import no.uio.ifi.in2000.danishah.figmatesting.ml.MLDataProcessor
@@ -37,6 +39,18 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
+
+    suspend fun predictFishingSpotConditions(
+        temp: Float,
+        wind: Float,
+        precipitation: Float
+    ): Int = withContext(Dispatchers.IO) {
+        val processor = MLDataProcessor(FrostRepository(FrostDataSource()))
+        val input = processor.process(temp.toDouble(), wind.toDouble(), precipitation.toDouble())
+        val prediction = model.predict(input)
+        prediction
+    }
+
 
     /*
     fun predictFishingConditions(temp: Float, wind: Float, precipitation: Float) {
