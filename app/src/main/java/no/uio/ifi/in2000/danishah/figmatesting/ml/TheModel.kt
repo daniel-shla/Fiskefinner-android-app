@@ -12,7 +12,7 @@ class TheModel {
 
     private val inputSize = 9 // ant variabler/faktorer i TrainingData
     private val hiddenSize = 16
-    private val outputSize = 3  // Tre klasser: Dårlig, God, Helt ålreit
+    private val outputSize = 1  // Tre klasser: Dårlig, God, Helt ålreit
 
     private val weightsInputHidden = Array(inputSize) { FloatArray(hiddenSize) { (Math.random() * 0.2 - 0.1).toFloat() } }
     private val weightsHiddenOutput = Array(hiddenSize) { FloatArray(outputSize) { (Math.random() * 0.2 - 0.1).toFloat() } }
@@ -24,7 +24,7 @@ class TheModel {
 
         // !!!!!!!!!BRUK DEN HER BARE HVIS DU HAR ENDRET NOE I MODELLEN!!!!!!!!!!
         // den sletter hele modellen fra cache så en ny må trenes
-        // if (cacheFile.exists()) cacheFile.delete()
+        if (cacheFile.exists()) cacheFile.delete()
 
         if (!cacheFile.exists()) {
             // kopier fra assets hvis cache ikke finnes
@@ -64,7 +64,7 @@ class TheModel {
                     processor.normalizeLatitude(sample.latitude),
                     processor.normalizeLongitude(sample.longitude)
                 )
-                val target = classifyFishingConditions(sample.fishCaught)
+                val target = if (sample.fishCaught > 0) 1f else 0f //classifyFishingConditions(sample.fishCaught)
 
                 // forward pass
                 val hidden = FloatArray(hiddenSize)
@@ -72,37 +72,46 @@ class TheModel {
                     hidden[i] = relu(inputs.indices.map { j -> inputs[j] * weightsInputHidden[j][i] }.sum() + biasHidden[i])
                 }
 
-                val output = FloatArray(outputSize)
-                for (i in 0 until outputSize) {
+                val output = hidden.indices.map { j -> hidden[j] * weightsHiddenOutput[j][0] }.sum() + biasOutput[0] //FloatArray(outputSize)
+                /* for (i in 0 until outputSize) {
                     output[i] = hidden.indices.map { j -> hidden[j] * weightsHiddenOutput[j][i] }.sum() + biasOutput[i]
-                }
+                } */
 
-                val softmaxOutput = softmax(output)
+                val prediction = sigmoid(output) // val softmaxOutput = softmax(output)
 
                 // backpropagation
-                val outputError = FloatArray(outputSize) { i -> target[i] - softmaxOutput[i] }
+                /* val outputError = FloatArray(outputSize) { i -> target[i] - softmaxOutput[i] }
                 val hiddenError = FloatArray(hiddenSize) { i ->
                     outputError.sum() * weightsHiddenOutput[i].sum() * reluDerivative(hidden[i])
+                } */
+                val error = target - prediction
+                val dOutput = error * sigmoidDerivative(prediction)
+
+                val hiddenError = FloatArray(hiddenSize) { i ->
+                    dOutput * weightsHiddenOutput[i][0] * reluDerivative(hidden[i])
                 }
 
-                // Oppdater vekter
+                // Oppdater output vekter
                 for (i in 0 until hiddenSize) {
-                    for (j in 0 until outputSize) {
-                        weightsHiddenOutput[i][j] += learningRate * outputError[j] * hidden[i]
-                    }
+                    weightsHiddenOutput[i][0] += learningRate * dOutput * hidden[i]
                 }
+                biasOutput[0] += learningRate * dOutput
 
+                // Oppdater input weights
                 for (i in 0 until inputSize) {
                     for (j in 0 until hiddenSize) {
                         weightsInputHidden[i][j] += learningRate * hiddenError[j] * inputs[i]
                     }
+                }
+                for (i in 0 until hiddenSize) {
+                    biasHidden[i] += learningRate * hiddenError[i]
                 }
             }
             Log.d("train", "$epoch fullført")
         }
     }
 
-    fun predict(input: FloatArray): Int {
+    fun predict(input: FloatArray): Float {
         require(input.size == inputSize)
 
         val hidden = FloatArray(hiddenSize)
@@ -110,31 +119,36 @@ class TheModel {
             hidden[i] = relu(input.indices.map { j -> input[j] * weightsInputHidden[j][i] }.sum() + biasHidden[i])
         }
 
-        val output = FloatArray(outputSize)
-        for (i in 0 until outputSize) {
+        val output = hidden.indices.map { j -> hidden[j] * weightsHiddenOutput[j][0] }.sum() + biasHidden[0] // FloatArray(outputSize)
+        /*for (i in 0 until outputSize) {
             output[i] = hidden.indices.map { j -> hidden[j] * weightsHiddenOutput[j][i] }.sum() + biasOutput[i]
-        }
+        } */
 
-        val softmaxOutput = softmax(output)
-        return softmaxOutput.indices.maxByOrNull { softmaxOutput[it] } ?: -1
+        //val softmaxOutput = softmax(output)
+        //return softmaxOutput.indices.maxByOrNull { softmaxOutput[it] } ?: -1
+        return sigmoid(output)
     }
 
     private fun relu(x: Float) = if (x > 0) x else 0f
     private fun reluDerivative(x: Float) = if (x > 0) 1f else 0f
+    private fun sigmoid(x: Float) = (1f / (1f + exp(-x)))
+    private fun sigmoidDerivative(y: Float) = y * (1f - y)
 
+    /*
     private fun softmax(values: FloatArray): FloatArray {
         val expValues = values.map { exp(it.toDouble()).toFloat() }
         val sumExpValues = expValues.sum()
         return expValues.map { it / sumExpValues }.toFloatArray()
-    }
+    } */
 
+    /*
     private fun classifyFishingConditions(fishCaught: Int): FloatArray {
         return when {
             fishCaught == 0 -> floatArrayOf(1f, 0f, 0f) // Dårlige forhold
             fishCaught in 1..2 -> floatArrayOf(0f, 1f, 0f) // Gode forhold
             else -> floatArrayOf(0f, 0f, 1f) // Helt ålreit
         }
-    }
+    } */
 
     // funksjon for å konvertere ML-modell til en CachedModel og lagre
     private fun saveModelToFile(context: Context) {

@@ -53,12 +53,19 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
             )
             val prediction = model.predict(normalizedInput)
 
+            val probability = when {
+                prediction >= 0.7f -> "God dag for fiske!"
+                prediction >= 0.4f -> "Ok dag for fiske."
+                else -> "Fiskeforholdene er ikke på topp i dag."
+            }
+            /*
             _predictionText.value = when (prediction) {
                 0 -> "Dårlig dag for fiske"
                 1 -> "God dag for fiske!"
                 2 -> "Helt ålreit dag for fiske"
                 else -> "Ukjent prediksjon"
-            }
+            }*/
+            _predictionText.value = probability
         }
     }
 }
