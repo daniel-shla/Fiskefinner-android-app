@@ -244,13 +244,4 @@ private fun SpeciesToggleRow(
             }
         }
     }
-}
-
-/**
- * Get a consistent color for a given species
- */
-fun getColorForSpecies(scientificName: String): Color {
-    // Use a hash of the species name to get a consistent color
-    val hue = (scientificName.hashCode() and 0xFFFFFF) % 360
-    return Color.hsl(hue.toFloat(), 0.7f, 0.5f)
 } 

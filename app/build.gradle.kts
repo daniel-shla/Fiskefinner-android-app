@@ -53,6 +53,9 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
+    // DataStore preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences-core:1.0.0")
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
@@ -81,6 +84,7 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.firebase.crashlytics.buildtools)
+    implementation(libs.androidx.monitor)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

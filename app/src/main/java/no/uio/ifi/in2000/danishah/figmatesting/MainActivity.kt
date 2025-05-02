@@ -17,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,13 +34,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import no.uio.ifi.in2000.danishah.figmatesting.data.repository.UserPreferencesRepository
 import no.uio.ifi.in2000.danishah.figmatesting.navigation.NavigationItem
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.DashboardScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.DashboardViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSelectionScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSelectionViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.FishSpeciesViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.onboarding.OnboardingScreen
+import no.uio.ifi.in2000.danishah.figmatesting.screens.onboarding.OnboardingViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.profile.ProfileScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.profile.ProfileViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.ui.theme.FigmaTestingTheme
@@ -66,61 +71,112 @@ fun FishingApp() {
         NavigationItem.Profile
     )
     
-    // Create ViewModels
     val mapViewModel: MapViewModel = viewModel(factory = MapViewModel.Factory)
     val dashboardViewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
-    val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory)
+    val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Companion.Factory(application()))
     val fishSelectionViewModel: FishSelectionViewModel = viewModel(factory = FishSelectionViewModel.Factory)
+    val onboardingViewModel: OnboardingViewModel = viewModel(factory = OnboardingViewModel.Factory(application()))
     
-    Scaffold(
-        bottomBar = {
-            NavigationBar {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination
-                
-                items.forEach { item ->
-                    NavigationBarItem(
-                        icon = { Icon(item.icon, contentDescription = item.title) },
-                        label = { Text(text = item.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
-                        onClick = {
-                            navController.navigate(item.route) {
+    // Create a shared FishSpeciesViewModel instance for all screens to use
+    val fishSpeciesViewModel: FishSpeciesViewModel = viewModel(
+        factory = FishSpeciesViewModel.Factory(application())
+    )
+    
+    val repository = UserPreferencesRepository(application())
+    val hasCompletedOnboarding by repository.hasCompletedOnboarding.collectAsState(initial = false)
+    
+    var showOnboarding by remember { mutableStateOf(!hasCompletedOnboarding) }
+    
+    if (showOnboarding) {
+        OnboardingScreen(
+            viewModel = onboardingViewModel,
+            onComplete = {
+                showOnboarding = false
+            }
+        )
+    } else {
+        Scaffold(
+            bottomBar = {
+                NavigationBar {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentDestination = navBackStackEntry?.destination
+                    
+                    items.forEach { item ->
+                        NavigationBarItem(
+                            icon = { Icon(item.icon, contentDescription = item.title) },
+                            label = { Text(text = item.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = NavigationItem.Map.route,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable(NavigationItem.Map.route) {
+                    MapScreen(
+                        viewModel = mapViewModel,
+                        fishSpeciesViewModel = fishSpeciesViewModel // Pass the shared viewmodel
+                    )
+                }
+                composable(NavigationItem.Dashboard.route) {
+                    DashboardScreen(viewModel = dashboardViewModel)
+                }
+                composable(NavigationItem.Profile.route) {
+                    ProfileScreen(
+                        viewModel = profileViewModel,
+                        onNavigateToPreferences = {
+                            navController.navigate("onboarding")
+                        },
+                        onLogout = {
+                            showOnboarding = true
+                        }
+                    )
+                }
+                composable(NavigationItem.FishSelection.route) {
+                    FishSelectionScreen(
+                        viewModel = fishSelectionViewModel,
+                        fishSpeciesViewModel = fishSpeciesViewModel, // Pass the shared viewmodel
+                        onNavigateToMap = {
+                            navController.navigate(NavigationItem.Map.route) {
                                 // Pop up to the start destination of the graph to
                                 // avoid building up a large stack of destinations
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
-                                // Avoid multiple copies of the same destination
                                 launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
                                 restoreState = true
                             }
                         }
                     )
                 }
-            }
-        }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = NavigationItem.Map.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(NavigationItem.Map.route) {
-                MapScreen(viewModel = mapViewModel)
-            }
-            composable(NavigationItem.Dashboard.route) {
-                DashboardScreen(viewModel = dashboardViewModel)
-            }
-            composable(NavigationItem.Profile.route) {
-                ProfileScreen(viewModel = profileViewModel)
-            }
-            composable(NavigationItem.FishSelection.route) {
-                FishSelectionScreen(viewModel = fishSelectionViewModel)
+                composable("onboarding") {
+                    OnboardingScreen(
+                        viewModel = onboardingViewModel,
+                        onComplete = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
             }
         }
     }
 }
+
+@Composable
+fun application() = androidx.compose.ui.platform.LocalContext.current.applicationContext as android.app.Application
 
 @Preview(showBackground = true)
 @Composable

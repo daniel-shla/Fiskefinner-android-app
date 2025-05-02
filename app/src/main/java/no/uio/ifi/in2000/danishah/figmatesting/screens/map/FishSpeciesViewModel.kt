@@ -1,7 +1,6 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -19,7 +18,6 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.repository.FishSpeciesReposi
 class FishSpeciesViewModel(application: Application) : AndroidViewModel(application) {
     
     private val repository = FishSpeciesRepository(application.applicationContext)
-    private val TAG = "FishSpeciesViewModel"
     
     // List of all available fish species
     private val _availableSpecies = MutableStateFlow<List<FishSpeciesData>>(emptyList())
@@ -92,7 +90,6 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
                 _errorMessage.value = null
                 
                 try {
-                    Log.d(TAG, "Loading data for $scientificName")
                     val fishData = repository.loadFishSpeciesPolygons(scientificName)
                     
                     if (fishData != null) {
@@ -102,17 +99,14 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
                             isEnabled = true,
                             isLoaded = true
                         )
-                        Log.d(TAG, "Successfully loaded ${fishData.polygons.size} polygons for $scientificName")
                     } else {
                         // Failed to load, but still toggle the state
                         currentStates[scientificName] = currentState.copy(
                             isEnabled = true
                         )
-                        Log.e(TAG, "Failed to load data for $scientificName")
                         _errorMessage.value = "Kunne ikke laste data for ${FishSpeciesData.getCommonName(scientificName)}"
                     }
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error loading data for $scientificName", e)
                     // Just toggle the state if loading fails
                     currentStates[scientificName] = currentState.copy(
                         isEnabled = true

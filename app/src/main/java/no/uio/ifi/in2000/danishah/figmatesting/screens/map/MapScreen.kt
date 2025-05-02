@@ -95,7 +95,10 @@ import android.graphics.Color as AndroidColor
 
 @OptIn(FlowPreview::class)
 @Composable
-fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory)) {
+fun MapScreen(
+    viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory),
+    fishSpeciesViewModel: FishSpeciesViewModel
+) {
     // Get screen density for map initialization
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
@@ -117,8 +120,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
     // New state for polygon annotation manager
     val polygonAnnotationManagerRef = remember { mutableStateOf<PolygonAnnotationManager?>(null) }
     
-    // Create FishSpeciesViewModel
-    val fishSpeciesViewModel: FishSpeciesViewModel = viewModel(factory = FishSpeciesViewModel.Factory(context.applicationContext as android.app.Application))
+    // Using the passed FishSpeciesViewModel instead of creating a new one
     val availableSpecies by fishSpeciesViewModel.availableSpecies.collectAsState()
     val speciesStates by fishSpeciesViewModel.speciesStates.collectAsState()
     val isLoadingSpecies by fishSpeciesViewModel.isLoading.collectAsState()
@@ -170,15 +172,21 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
         val enabledSpecies = speciesStates.values
             .filter { it.isEnabled && it.isLoaded }
         
-        Log.d("FishPolygons", "Enabled species count: ${enabledSpecies.size}")
+        if (enabledSpecies.isEmpty()) {
+            return@LaunchedEffect
+        }
         
         // Clear existing polygons
         polygonAnnotationManagerRef.value?.deleteAll()
         
+        // Check if polygonAnnotationManagerRef is initialized
+        if (polygonAnnotationManagerRef.value == null) {
+            return@LaunchedEffect
+        }
+        
         // Draw each enabled species
         enabledSpecies.forEach { state ->
             if (state.species.polygons.isNotEmpty()) {
-                Log.d("FishPolygons", "Drawing ${state.species.polygons.size} polygons for ${state.species.commonName} with opacity: ${state.opacity}")
                 polygonAnnotationManagerRef.value?.let { manager ->
                     drawFishSpeciesPolygons(
                         manager, 
@@ -187,9 +195,34 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                         state.opacity
                     )
                 }
-            } else {
-                Log.e("FishPolygons", "No polygons available for ${state.species.scientificName}")
             }
+        }
+    }
+    
+    // Additional effect to ensure polygons are drawn when map is focused after navigation
+    LaunchedEffect(Unit) {
+        // Short delay to ensure map is fully loaded
+        delay(500)
+        
+        val enabledSpecies = speciesStates.values.filter { it.isEnabled && it.isLoaded }
+        if (enabledSpecies.isNotEmpty() && polygonAnnotationManagerRef.value != null) {
+            // Force clear and redraw
+            polygonAnnotationManagerRef.value?.deleteAll()
+            
+            enabledSpecies.forEach { state ->
+                if (state.species.polygons.isNotEmpty()) {
+                    polygonAnnotationManagerRef.value?.let { manager ->
+                        drawFishSpeciesPolygons(
+                            manager, 
+                            state.species, 
+                            getColorForSpecies(state.species.scientificName),
+                            state.opacity
+                        )
+                    }
+                }
+            }
+            
+            // Remove automatic navigation to polygon location
         }
     }
 
@@ -264,7 +297,6 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                                 withContext(Dispatchers.Main) { // Bare UI-arbeid
                                     val manager = annotationManagerRef.value ?: return@withContext
                                     manager.deleteAll()
-                                    Log.d("Annotation", "Sletter alle")
 
                                     val bitmap = BitmapFactory.decodeResource(mapView.context.resources, R.drawable.yallaimg)
 
@@ -367,21 +399,7 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Draw Fish Species button
-            SmallFloatingActionButton(
-                onClick = {
-                    fishSpeciesViewModel.toggleSpeciesPanel(true)
-                },
-                shape = CircleShape,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Palette,
-                    contentDescription = "Velg fiskearter"
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
+            // Remove Fish Species button - now in FishSelectionScreen
             
             // Zoom in button
             SmallFloatingActionButton(
@@ -420,76 +438,8 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 Icon(Icons.Default.MyLocation, contentDescription = "Min posisjon")
             }
         }
-
-        // Show info card for selected fish species
-        val enabledSpecies = speciesStates.values.filter { it.isEnabled && it.isLoaded }
-        if (enabledSpecies.isNotEmpty()) {
-            Card(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-                    .fillMaxWidth(0.9f),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .heightIn(max = 300.dp) // Limit height and make scrollable if needed
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Aktive fiskearter",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    for (state in enabledSpecies) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            // Color indicator
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(getColorForSpecies(state.species.scientificName))
-                                    .alpha(state.opacity)
-                            )
-                            
-                            Spacer(modifier = Modifier.width(8.dp))
-                            
-                            // Species name and polygon count
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = state.species.commonName,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                
-                                Text(
-                                    text = "${state.species.polygons.size} polygoner",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "For å justere synlighet, trykk på fiskearter-knappen.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
         
-        // Loading when fish species data is being loaded
+        // Show loading indicator for fish data
         if (isLoadingSpecies) {
             Box(
                 modifier = Modifier
@@ -517,38 +467,6 @@ fun MapScreen(viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory
                 }
             }
         }
-        
-        // Show fish species panel
-        if (showSpeciesPanel) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-            ) {
-                SpeciesPanel(
-                    viewModel = fishSpeciesViewModel,
-                    onClose = {
-                        fishSpeciesViewModel.toggleSpeciesPanel(false)
-                    }
-                )
-            }
-        }
-
-        // Teleport to First Polygon button
-        if (lastFirstPolygonPoint != null) {
-            SmallFloatingActionButton(
-                onClick = {
-                    // Move map center to the first polygon's first point
-                    viewModel.navigateToPoint(lastFirstPolygonPoint!!)
-                },
-                shape = CircleShape,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(16.dp)
-                    .size(40.dp)
-            ) {
-                Text("Go")
-            }
-        }
     }
 }
 
@@ -559,22 +477,28 @@ private fun drawFishSpeciesPolygons(
     color: Color,
     opacity: Float
 ) {
-    Log.d("FishPolygons", "Starting to draw polygons for ${fishSpecies.scientificName}")
+    // Safety check for null manager
+    if (polygonManager == null || fishSpecies.polygons.isEmpty()) {
+        return
+    }
     
     // Increased max polygons to take advantage of simplified files
     val maxPolygons = 2000 // Increased from 1000
     val polygonsToShow = if (fishSpecies.polygons.size > maxPolygons) {
-        Log.d("FishPolygons", "Limiting from ${fishSpecies.polygons.size} to $maxPolygons polygons")
         val step = fishSpecies.polygons.size / maxPolygons
         fishSpecies.polygons.filterIndexed { index, _ -> index % step == 0 }.take(maxPolygons)
     } else {
         fishSpecies.polygons
     }
     
-    // Use the provided color parameter for fill color
-    val fillOpacity = opacity
-    val fillColor = "#CC${color.toArgb().toHexString().substring(2)}" // Use the provided color with CC alpha
-    val outlineColor = "#FF000000" // Solid black
+    // Convert the Jetpack Compose color to Android color with alpha
+    val colorWithoutAlpha = "#${color.toArgb().toHexString().substring(2)}"
+    
+    // Create colors with the proper opacity/alpha values
+    val fillColor = AndroidColor.parseColor(colorWithoutAlpha)
+    val fillOpacity = opacity.toDouble()
+    val outlineColor = AndroidColor.BLACK
+    
     var firstPolygonFirstPoint: Point? = null
     
     // Batch processing polygons to improve performance
@@ -594,21 +518,19 @@ private fun drawFishSpeciesPolygons(
             
             PolygonAnnotationOptions()
                 .withPoints(listOf(closedPoints))
-                .withFillColor(AndroidColor.parseColor(fillColor))
-                .withFillOpacity(fillOpacity.toDouble())
-                .withFillOutlineColor(AndroidColor.parseColor(outlineColor))
+                .withFillColor(fillColor)
+                .withFillOpacity(fillOpacity)
+                .withFillOutlineColor(outlineColor)
         }
         
         // Create polygon annotations in batch
-        polygonManager?.create(batchAnnotations)
+        polygonManager.create(batchAnnotations)
     }
     
     // Store the first polygon's first point for teleportation
     if (firstPolygonFirstPoint != null) {
         lastFirstPolygonPoint = firstPolygonFirstPoint
     }
-    
-    Log.d("FishPolygons", "Created ${polygonsToShow.size} polygons for ${fishSpecies.scientificName}")
 }
 
 // Extension function to convert Int color to hex string
@@ -618,13 +540,6 @@ private fun Int.toHexString(): String {
 
 // Store the last first polygon point for teleportation
 private var lastFirstPolygonPoint: Point? = null
-
-// Helper function to check if two points are equal (within a small epsilon)
-private fun arePointsEqual(p1: Point, p2: Point): Boolean {
-    val epsilon = 1e-8 // Small value to account for floating point imprecision
-    return Math.abs(p1.longitude() - p2.longitude()) < epsilon && 
-           Math.abs(p1.latitude() - p2.latitude()) < epsilon
-}
 
 fun boundsToPolygonWKT(bounds: CoordinateBounds): String {
     val sw = bounds.southwest
@@ -637,26 +552,4 @@ fun boundsToPolygonWKT(bounds: CoordinateBounds): String {
             "${ne.longitude()} ${ne.latitude()}, " +
             "${sw.longitude()} ${ne.latitude()}" +
             "))"
-}
-
-// Function to get a unique color for each species
-private fun getColorForSpecies(scientificName: String): Color {
-    // Map of species to specific colors
-    val speciesColors = mapOf(
-        "gadus_morhua" to Color(0xFF0277BD),           // Dark blue
-        "melanogrammus_aeglefinus" to Color(0xFF558B2F), // Green
-        "pollachius_virens" to Color(0xFFF57F17),      // Yellow/orange
-        "scomber_scombrus" to Color(0xFF6A1B9A),       // Purple
-        "pleuronectes_platessa" to Color(0xFFD81B60),  // Pink
-        "hippoglossus_hippoglossus" to Color(0xFF1B5E20), // Dark green
-        "dicentrarchus_labrax" to Color(0xFF4E342E),   // Brown 
-        "anarhichas_lupus" to Color(0xFFE64A19),       // Orange
-        "esox_lucius" to Color(0xFF0097A7),            // Teal
-        "salmo_salar" to Color(0xFFEF5350),            // Red 
-        "salvelinus_alpinus" to Color(0xFF7E57C2),     // Light purple
-        "perca_fluviatilis" to Color(0xFF689F38)       // Light green
-    )
-    
-    // Return the specific color for this species or a default if not found
-    return speciesColors[scientificName] ?: Color(0xFFFF0000) // Default to red
 }
