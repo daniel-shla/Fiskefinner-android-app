@@ -29,21 +29,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import no.uio.ifi.in2000.danishah.figmatesting.screens.map.FishSpeciesViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSpeciesViewModel
 
-/**
- * A panel displaying toggles for all available fish species
- */
+
 @Composable
 fun SpeciesPanel(
     viewModel: FishSpeciesViewModel,
@@ -108,7 +102,6 @@ fun SpeciesPanel(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Info text about limitations
             Text(
                 text = "Du kan nå vise opptil 8 fiskearter samtidig på kartet.",
                 style = MaterialTheme.typography.bodySmall,
@@ -145,9 +138,6 @@ fun SpeciesPanel(
     }
 }
 
-/**
- * A single row for a fish species with a toggle switch
- */
 @Composable
 private fun SpeciesToggleRow(
     name: String,
@@ -167,7 +157,7 @@ private fun SpeciesToggleRow(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.alpha(1.0f)
         ) {
-            // Fish species color indicator
+            // color indicator
             if (isChecked) {
                 Box(
                     modifier = Modifier
@@ -198,7 +188,6 @@ private fun SpeciesToggleRow(
                 )
             }
             
-            // Loading indicator or toggle
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
@@ -212,7 +201,6 @@ private fun SpeciesToggleRow(
             }
         }
         
-        // Only show opacity slider if species is enabled
         if (isChecked) {
             Spacer(modifier = Modifier.height(4.dp))
             Row(
@@ -235,7 +223,6 @@ private fun SpeciesToggleRow(
                         .padding(horizontal = 8.dp)
                 )
                 
-                // Display opacity percentage
                 Text(
                     text = "${(opacity * 100).toInt()}%",
                     style = MaterialTheme.typography.bodySmall,

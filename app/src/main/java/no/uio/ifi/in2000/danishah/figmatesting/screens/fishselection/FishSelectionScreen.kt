@@ -36,18 +36,15 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import no.uio.ifi.in2000.danishah.figmatesting.screens.map.FishSpeciesViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.getColorForSpecies
 
 
 @Composable
 fun FishSelectionScreen(
-    viewModel: FishSelectionViewModel = viewModel(factory = FishSelectionViewModel.Factory),
     fishSpeciesViewModel: FishSpeciesViewModel,
     onNavigateToMap: () -> Unit = {}
 ) {
-    // Using the passed FishSpeciesViewModel instance
+    // Using the FishSpeciesViewModel instance
     val availableSpecies by fishSpeciesViewModel.availableSpecies.collectAsState()
     val speciesStates by fishSpeciesViewModel.speciesStates.collectAsState()
     val isLoadingSpecies by fishSpeciesViewModel.isLoading.collectAsState()

@@ -1,3 +1,5 @@
+package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
+
 import kotlinx.serialization.Serializable
 
 @Serializable

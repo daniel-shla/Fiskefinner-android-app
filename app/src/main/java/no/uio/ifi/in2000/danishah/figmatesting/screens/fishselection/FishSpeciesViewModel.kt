@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.danishah.figmatesting.screens.map
+package no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

@@ -1,7 +1,5 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard
 
-import TimeSeries
-import WeatherUiState
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -10,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TimeSeries
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.WeatherUiState
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.WeatherRepository
 
 class DashboardViewModel : ViewModel() {

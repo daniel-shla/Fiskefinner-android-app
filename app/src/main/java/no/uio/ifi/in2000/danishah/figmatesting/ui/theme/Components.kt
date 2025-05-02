@@ -17,14 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 
-/**
- * Custom components and styling for FiskeFinner app
- * These components provide consistent styling across the app based on the Figma design
- */
 
-/**
- * Standard card with dark blue background and rounded corners
- */
+
 @Composable
 fun FiskeFinnerCard(
     modifier: Modifier = Modifier,
@@ -45,9 +39,7 @@ fun FiskeFinnerCard(
     }
 }
 
-/**
- * Primary action button with light blue background
- */
+
 @Composable
 fun PrimaryButton(
     text: String,
@@ -72,9 +64,6 @@ fun PrimaryButton(
     }
 }
 
-/**
- * Search bar style matching the Figma design
- */
 @Composable
 fun SearchBarBackground(
     modifier: Modifier = Modifier,
@@ -92,9 +81,6 @@ fun SearchBarBackground(
     }
 }
 
-/**
- * Section header style matching the Figma design
- */
 @Composable
 fun SectionHeader(
     text: String,
@@ -108,9 +94,6 @@ fun SectionHeader(
     )
 }
 
-/**
- * Divider to separate content sections
- */
 @Composable
 fun FiskeFinnerDivider(
     modifier: Modifier = Modifier

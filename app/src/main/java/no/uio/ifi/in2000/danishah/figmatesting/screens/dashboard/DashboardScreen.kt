@@ -1,5 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,12 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.WeatherUiState
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards.Catch
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards.CatchCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards.FishingSpot
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards.SpotCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards.WeatherCard
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DashboardScreen(viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)) {
     val uiState by viewModel.uiState.collectAsState()

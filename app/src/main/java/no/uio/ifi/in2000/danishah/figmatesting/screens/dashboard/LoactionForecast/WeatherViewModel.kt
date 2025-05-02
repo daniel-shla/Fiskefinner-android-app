@@ -1,13 +1,13 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast
 
-import TimeSeries
-import WeatherUiState
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TimeSeries
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.WeatherUiState
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.WeatherRepository
 
 class WeatherViewModel() : ViewModel() {

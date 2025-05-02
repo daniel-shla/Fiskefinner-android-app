@@ -6,9 +6,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles for FiskeFinner app
 val Typography = Typography(
-    // Large titles (screen headers)
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
@@ -17,7 +15,6 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
     
-    // Medium titles (section headers)
     headlineLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
@@ -42,7 +39,6 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
     
-    // Card titles and important text
     titleLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.SemiBold,
@@ -59,7 +55,6 @@ val Typography = Typography(
         letterSpacing = 0.sp
     ),
     
-    // Regular text
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
@@ -76,7 +71,6 @@ val Typography = Typography(
         letterSpacing = 0.25.sp
     ),
     
-    // Small text and labels
     bodySmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Normal,
@@ -85,7 +79,6 @@ val Typography = Typography(
         letterSpacing = 0.4.sp
     ),
     
-    // Button and tab text
     labelLarge = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Medium,

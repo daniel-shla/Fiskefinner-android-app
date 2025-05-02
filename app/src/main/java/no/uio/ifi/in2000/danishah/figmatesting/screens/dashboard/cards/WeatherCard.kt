@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards
 
-import TimeSeries
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TimeSeries
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.WeatherUiState
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
 import java.time.LocalDate

@@ -27,9 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FishSpeciesData
 
-/**
- * Dialog for selecting fish species to display on the map
- */
 @Composable
 fun FishSpeciesDialog(
     isLoading: Boolean,
@@ -75,7 +72,6 @@ fun FishSpeciesDialog(
                             .padding(16.dp)
                     )
                 } else {
-                    // Species list
                     LazyColumn {
                         items(availableSpecies) { species ->
                             FishSpeciesItem(
@@ -92,9 +88,7 @@ fun FishSpeciesDialog(
     }
 }
 
-/**
- * List item for a single fish species
- */
+
 @Composable
 private fun FishSpeciesItem(
     species: FishSpeciesData,
@@ -110,14 +104,12 @@ private fun FishSpeciesItem(
         Column(
             modifier = Modifier.weight(1f)
         ) {
-            // Common name (Norwegian)
             Text(
                 text = species.commonName,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold
             )
             
-            // Scientific name (Latin)
             Text(
                 text = species.scientificName.replace("_", " "),
                 style = MaterialTheme.typography.bodyMedium,
