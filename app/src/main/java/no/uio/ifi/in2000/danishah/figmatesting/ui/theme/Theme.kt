@@ -15,6 +15,39 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
+// New FiskeFinner theme based on Figma design
+private val FiskeFinnerColorScheme = darkColorScheme(
+    primary = LightBlue,
+    onPrimary = White,
+    primaryContainer = LightBlue,
+    onPrimaryContainer = White,
+    
+    secondary = MediumDarkBlue,
+    onSecondary = White,
+    secondaryContainer = MediumDarkBlue,
+    onSecondaryContainer = White,
+    
+    tertiary = AccentPink,
+    onTertiary = White,
+    tertiaryContainer = AccentPink,
+    onTertiaryContainer = White,
+    
+    background = DarkBlue,
+    onBackground = White,
+    
+    surface = MediumDarkBlue,
+    onSurface = White,
+    surfaceVariant = MediumDarkBlue,
+    onSurfaceVariant = LightGray,
+    
+    error = AccentPink,
+    onError = White,
+    
+    outline = InactiveBlue,
+    outlineVariant = InactiveBlue
+)
+
+// Keep the old color schemes for backward compatibility
 private val DarkColorScheme = darkColorScheme(
     primary = Blue700,
     secondary = Green700,
@@ -45,30 +78,25 @@ private val LightColorScheme = lightColorScheme(
 fun FigmaTestingTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // Disabled by default to use our custom theme
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    // Always use our FiskeFinner theme regardless of system dark/light mode
+    val colorScheme = FiskeFinnerColorScheme
+    
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            window.statusBarColor = DarkBlue.toArgb() // Set status bar to dark blue
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = Shapes,
         content = content
     )
 }

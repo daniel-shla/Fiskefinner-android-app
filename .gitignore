@@ -14,10 +14,6 @@
 .cxx
 local.properties
 
-# Exclude all asset JSON files - they're too large for git
-app/src/main/assets/*.json
-app/src/main/assets/simplified_*.json
-
 # Exclude large build artifacts
 app/build/
 /*/build/
