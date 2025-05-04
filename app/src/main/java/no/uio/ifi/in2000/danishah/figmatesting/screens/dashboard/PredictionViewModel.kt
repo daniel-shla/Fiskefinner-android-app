@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,7 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
     ) {
      */
     fun predictFishingConditions(input: TrainingData) {
+        Log.d("AI model", "Trainging data: $input")
         viewModelScope.launch {
             val processor = MLDataProcessor(FrostRepository(FrostDataSource())) // eller refaktorer så du ikke trenger repo her
             val normalizedInput = floatArrayOf(
@@ -67,5 +69,23 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
             }*/
             _predictionText.value = probability
         }
+    }
+
+    suspend fun predictFishingSpot(input: TrainingData): Float {
+        val processor = MLDataProcessor(FrostRepository(FrostDataSource()))
+
+        val normalizedInput = floatArrayOf(
+            processor.normalizeTemperature(input.temperature),
+            processor.normalizeWindSpeed(input.windSpeed),
+            processor.normalizePrecipitation(input.precipitation),
+            processor.normalizeAirPressure(input.airPressure),
+            processor.normalizeCloudCover(input.cloudCover),
+            processor.normalizeTimeOfDay(input.timeOfDay),
+            processor.normalizeSeason(input.season),
+            processor.normalizeLatitude(input.latitude),
+            processor.normalizeLongitude(input.longitude)
+        )
+
+        return model.predict(normalizedInput)
     }
 }

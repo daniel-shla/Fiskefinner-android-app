@@ -82,7 +82,8 @@ class MittFiskeDataSource(
                             id = id,
                             name = name,
                             p = point,
-                            locs = locs
+                            locs = locs,
+                            rating = null
                         )
                     )
                 } catch (e: Exception) {

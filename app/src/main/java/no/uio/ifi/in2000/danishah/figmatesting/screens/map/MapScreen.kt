@@ -72,9 +72,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.danishah.figmatesting.R
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FishSpeciesData
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.LocationDataSource
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.MittFiskeDataSource
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSpeciesViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.SearchResultsCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.getColorForSpecies
@@ -115,6 +118,10 @@ fun MapScreen(
     val isLoadingSpecies by fishSpeciesViewModel.isLoading.collectAsState()
     val showSpeciesPanel by fishSpeciesViewModel.showSpeciesPanel.collectAsState()
 
+    val weatherViewModel: WeatherViewModel = viewModel()
+    val predictionViewModel: PredictionViewModel = viewModel()
+
+
     // Using the recommended viewport state approach
     val mapViewportState = rememberMapViewportState {
         setCameraOptions {
@@ -133,6 +140,19 @@ fun MapScreen(
         )
     )
     val mittFiskeState by mittFiskeViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        if (mittFiskeState.locations.isEmpty()) {
+            val polygonWKT = "POLYGON((4.0 71.5, 4.0 57.9, 31.5 57.9, 31.5 71.5, 4.0 71.5))"
+            val pointWKT = "POINT(15.0 64.0)"
+            mittFiskeViewModel.loadLocations(polygonWKT, pointWKT)
+        }
+
+        mittFiskeViewModel.rateAllLocationsWithAI(
+            weatherViewModel = weatherViewModel,
+            predictionViewModel = predictionViewModel
+        )
+    }
 
     LaunchedEffect(mapCenter, zoomLevel) {
         val cameraOptions = CameraOptions.Builder()
@@ -268,19 +288,14 @@ fun MapScreen(
                                 CameraOptions.Builder().center(center).zoom(zoom).build()
                             )
 
-                            val polygonWKT = boundsToPolygonWKT(bounds)
-                            val pointWKT = "POINT(${center.longitude()} ${center.latitude()})"
-
-                            mittFiskeViewModel.loadLocations(polygonWKT, pointWKT)
-
-                            while (mittFiskeViewModel.uiState.value.isLoading) {
-                                delay(100)
-                            }
 
                             val locations = mittFiskeViewModel.uiState.value.locations
 
+                            val visibleLocations = mittFiskeViewModel.filterLocationsInBounds(locations, bounds)
+
+
                             if (locations.isNotEmpty()) {
-                                viewModel.updateClusters(locations, zoom)
+                                viewModel.updateClusters(visibleLocations, zoom)
                                 viewModel.triggerDraw()
 
                                 withContext(Dispatchers.Main) { // Bare UI-arbeid
@@ -294,7 +309,7 @@ fun MapScreen(
                                             .withPoint(cluster.center)
                                             .withIconImage(bitmap)
                                             .withIconSize(if (cluster.spots.size == 1) 0.04 else 0.040)
-                                            .withTextField(cluster.spots.size.toString())
+                                            .withTextField(cluster.averageRating.toString())
                                             .withTextOffset(listOf(0.0, -2.0))
                                             .withTextSize(12.0)
                                         manager.create(options)

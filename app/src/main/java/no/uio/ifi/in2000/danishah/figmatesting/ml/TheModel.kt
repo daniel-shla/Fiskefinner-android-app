@@ -2,6 +2,7 @@ package no.uio.ifi.in2000.danishah.figmatesting.ml
 
 import android.content.Context
 import android.util.Log
+import com.mapbox.maps.logD
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.FrostRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.source.FrostDataSource
@@ -113,8 +114,11 @@ class TheModel {
 
     fun predict(input: FloatArray): Float {
         require(input.size == inputSize)
+        Log.d("AI model", "input: $input")
+
 
         val hidden = FloatArray(hiddenSize)
+        Log.d("AI model", "hidden: $hidden")
         for (i in 0 until hiddenSize) {
             hidden[i] = relu(input.indices.map { j -> input[j] * weightsInputHidden[j][i] }.sum() + biasHidden[i])
         }
@@ -126,6 +130,7 @@ class TheModel {
 
         //val softmaxOutput = softmax(output)
         //return softmaxOutput.indices.maxByOrNull { softmaxOutput[it] } ?: -1
+        Log.d("AI model", "OUTPUT: ${sigmoid(output)}")
         return sigmoid(output)
     }
 

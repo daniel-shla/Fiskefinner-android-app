@@ -76,4 +76,12 @@ class WeatherViewModel() : ViewModel() {
         return Triple(temperature, windSpeed, precipitation)
     }
 
+    suspend fun getWeatherForLocation(lat: Double, lon: Double): TimeSeries {
+        return repository.getWeather(lat, lon)
+            .properties
+            .timeseries
+            .first() // returnerer værdata for nåværende tidspunkt
+    }
+
+
 }

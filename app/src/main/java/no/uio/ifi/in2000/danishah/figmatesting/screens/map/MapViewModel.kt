@@ -179,9 +179,14 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             else -> 0.0
         }
 
-
         if (maxDistance == 0.0) {
-            return locations.map { Cluster(it.toPoint(), listOf(it)) }
+            return locations.map { loc ->
+                Cluster(
+                    center = loc.toPoint(),
+                    spots = listOf(loc),
+                    averageRating = loc.rating?.toFloat()
+                )
+            }
         }
 
         val clusters = mutableListOf<Cluster>()
@@ -194,16 +199,32 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             }
 
             if (existing != null) {
-                val updated = existing.spots + loc
+                val updatedSpots = existing.spots + loc
+                val avgRating = updatedSpots.mapNotNull { it.rating }.average().toFloat()
+
                 clusters.remove(existing)
-                clusters.add(Cluster(existing.center, updated))
+                clusters.add(
+                    Cluster(
+                        center = existing.center,
+                        spots = updatedSpots,
+                        averageRating = avgRating
+                    )
+                )
             } else {
-                clusters.add(Cluster(point, listOf(loc)))
+                clusters.add(
+                    Cluster(
+                        center = point,
+                        spots = listOf(loc),
+                        averageRating = loc.rating?.toFloat()
+                    )
+                )
             }
         }
+
         Log.d("ClusterDebug", "Antall clusters generert: ${clusters.size}")
         return clusters
     }
+
 
 
 
