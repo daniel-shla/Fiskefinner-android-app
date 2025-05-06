@@ -25,7 +25,7 @@ class TheModel {
 
         // !!!!!!!!!BRUK DEN HER BARE HVIS DU HAR ENDRET NOE I MODELLEN!!!!!!!!!!
         // den sletter hele modellen fra cache så en ny må trenes
-        if (cacheFile.exists()) cacheFile.delete()
+        //if (cacheFile.exists()) cacheFile.delete()
 
         if (!cacheFile.exists()) {
             // kopier fra assets hvis cache ikke finnes

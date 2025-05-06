@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
 import android.graphics.BitmapFactory
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +46,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -71,6 +76,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.danishah.figmatesting.R
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FishSpeciesData
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
@@ -120,6 +126,13 @@ fun MapScreen(
 
     val weatherViewModel: WeatherViewModel = viewModel()
     val predictionViewModel: PredictionViewModel = viewModel()
+
+    val annotationToLocation = remember { mutableMapOf<String, MittFiskeLocation>() }
+    val selectedLocation = remember { mutableStateOf<MittFiskeLocation?>(null) }
+    val selectedCluster = remember { mutableStateOf<Cluster?>(null) }
+
+
+
 
 
     // Using the recommended viewport state approach
@@ -254,6 +267,7 @@ fun MapScreen(
             MapEffect(mapViewportState) { mapView ->
                 mapViewRef.value = mapView
 
+
                 val plugin = mapView.getPlugin(Plugin.MAPBOX_ANNOTATION_PLUGIN_ID) as? AnnotationPlugin
                 if (annotationManagerRef.value == null) {
                     annotationManagerRef.value = plugin?.createPointAnnotationManager()
@@ -299,6 +313,7 @@ fun MapScreen(
                                 viewModel.triggerDraw()
 
                                 withContext(Dispatchers.Main) { // Bare UI-arbeid
+
                                     val manager = annotationManagerRef.value ?: return@withContext
                                     manager.deleteAll()
 
@@ -312,12 +327,41 @@ fun MapScreen(
                                             .withTextField(cluster.averageRating.toString())
                                             .withTextOffset(listOf(0.0, -2.0))
                                             .withTextSize(12.0)
-                                        manager.create(options)
+                                        val annotation = manager.create(options)
+                                        annotationToLocation[annotation.id] = cluster.spots.first() // velger første lokasjon i cluster
+                                    }
+
+                                    manager.addClickListener { annotation ->
+                                        val location = annotationToLocation[annotation.id]
+                                        if (location != null) {
+                                            val cluster = viewModel.clusters.value.find { it.spots.contains(location) }
+                                            if (cluster != null) {
+                                                if (cluster.spots.size == 1) {
+                                                    selectedLocation.value = location
+                                                    selectedCluster.value = null
+                                                } else {
+                                                    selectedLocation.value = null
+                                                    selectedCluster.value = cluster
+                                                }
+                                            }
+                                        }
+                                        true
                                     }
                                 }
                             }
                         }
                     }
+            }
+        }
+
+        selectedCluster.value?.let { cluster ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                ClusterOverviewCard(
+                    cluster = selectedCluster.value!!,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 90.dp)
+                )
             }
         }
 
@@ -369,6 +413,7 @@ fun MapScreen(
                         }
                     }
                 )
+
             )
 
 
@@ -394,6 +439,17 @@ fun MapScreen(
                     )
                 }
             }
+            selectedLocation.value?.let { location ->
+                LocationInfoCard(
+                    location = location,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                )
+            }
+
+// Vis info hvis en cluster med flere spots er valgt
+
         }
 
         // Zoom controls and My Location - at bottom right
@@ -557,3 +613,89 @@ fun boundsToPolygonWKT(bounds: CoordinateBounds): String {
             "${sw.longitude()} ${ne.latitude()}" +
             "))"
 }
+
+@Composable
+fun LocationInfoCard(location: MittFiskeLocation, modifier: Modifier = Modifier) {
+    Card(modifier = modifier, shape = RoundedCornerShape(12.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text("Fiskeplass: ${location.name}", style = MaterialTheme.typography.titleMedium)
+            Text("Rating: ${location.rating ?: "ukjent"}")
+            Spacer(Modifier.height(8.dp))
+            Text("Antall registrerte posisjoner: ${location.locs.size}")
+            // TODO: Vis evt arter hvis du har
+        }
+    }
+}
+
+@Composable
+fun ClusterOverviewCard(cluster: Cluster, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth(0.92f)
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            Text(
+                text = "${cluster.spots.size} fiskeplasser i dette området",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            cluster.spots.take(3).forEach { spot ->
+                val loc = spot.locs.firstOrNull()
+                Column(modifier = Modifier.padding(vertical = 6.dp)) {
+                    Text(
+                        text = spot.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    loc?.de?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("⭐ ${spot.rating ?: "?"}")
+                        loc?.fe?.takeIf { it.isNotEmpty() }?.let { features ->
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = features.joinToString(" • "),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (cluster.spots.size > 3) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "…og ${cluster.spots.size - 3} til",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            cluster.averageRating?.let {
+                Text(
+                    text = "Gjennomsnittlig AI-vurdering: ${"%.1f".format(it)} / 5",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+
