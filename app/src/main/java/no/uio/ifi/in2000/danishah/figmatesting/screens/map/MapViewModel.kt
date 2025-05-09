@@ -162,10 +162,13 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
 
     fun updateClusters(locations: List<MittFiskeLocation>, zoom: Double) {
         Log.d("ClusterDebug", "Zoom: $zoom, antall locations: ${locations.size}")
+
         _clusters.value = clusterLocations(locations, zoom)
     }
 
     fun clusterLocations(locations: List<MittFiskeLocation>, zoom: Double): List<Cluster> {
+        val ratedLocations = locations.filter { it.rating != null }
+
         val maxDistance = when (zoom.toInt()) {
             in 0..4 -> 250000.0
             5 -> 220000.0
@@ -180,7 +183,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         }
 
         if (maxDistance == 0.0) {
-            return locations.map { loc ->
+            return ratedLocations.map { loc ->
                 Cluster(
                     center = loc.toPoint(),
                     spots = listOf(loc),
@@ -191,7 +194,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
 
         val clusters = mutableListOf<Cluster>()
 
-        for (loc in locations) {
+        for (loc in ratedLocations) {
             val point = loc.toPoint()
 
             val existing = clusters.find {
@@ -200,7 +203,8 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
 
             if (existing != null) {
                 val updatedSpots = existing.spots + loc
-                val avgRating = updatedSpots.mapNotNull { it.rating }.average().toFloat()
+                val ratings = updatedSpots.mapNotNull { it.rating }
+                val avgRating = if (ratings.isNotEmpty()) ratings.average().toFloat() else null
 
                 clusters.remove(existing)
                 clusters.add(
@@ -221,9 +225,10 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             }
         }
 
-        Log.d("ClusterDebug", "Antall clusters generert: ${clusters.size}")
+        Log.d("ClusterDebug", "Zoom: $zoom, total: ${locations.size}, rated: ${ratedLocations.size}, clusters: ${clusters.size}")
         return clusters
     }
+
 
 
 

@@ -10,5 +10,6 @@ data class TrainingData(
     val season: Float,
     val latitude: Float,
     val longitude: Float,
-    val fishCaught: Int
+    val fishCaught: Int,
+    val speciesId: Float
 )

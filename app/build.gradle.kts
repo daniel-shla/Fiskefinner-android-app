@@ -41,6 +41,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.accompanist.permissions)
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -50,6 +52,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.compose.ui:ui:1.8.1") // eller din Compose versjon
+    implementation("androidx.compose.ui:ui-text:1.8.1")
+
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
@@ -85,6 +90,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.androidx.monitor)
+    implementation(libs.play.services.location)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,4 +1,5 @@
 [versions]
+accompanistPermissions = "0.34.0"
 agp = "8.8.0"
 android = "10.13.0"
 compose = "10.13.0"
@@ -24,8 +25,10 @@ navigationCompose = "2.8.9"
 playServicesMaps = "19.1.0"
 firebaseCrashlyticsBuildtools = "3.0.3"
 monitor = "1.7.1"
+playServicesLocation = "21.3.0"
 
 [libraries]
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 android = { module = "com.mapbox.maps:android", version.ref = "android" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
@@ -58,6 +61,7 @@ maps-compose = { module = "com.google.maps.android:maps-compose", version.ref = 
 play-services-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "playServicesMaps" }
 firebase-crashlytics-buildtools = { group = "com.google.firebase", name = "firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
 androidx-monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

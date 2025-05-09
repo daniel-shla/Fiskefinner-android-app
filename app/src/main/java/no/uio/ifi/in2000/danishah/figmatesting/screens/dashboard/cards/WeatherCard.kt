@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.outlined.Air
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Card
@@ -78,7 +77,8 @@ fun WeatherCard(weatherData: TimeSeries?) {
                 // season = getSeason(LocalDate.now().monthValue), // SLETTET funksjon nedenfor
                 latitude = 59.9f, // Oslo-ish
                 longitude = 10.75f,
-                fishCaught = 0 // dummy, ikke brukt i prediction
+                fishCaught = 0,
+                speciesId = 0f // dummy, ikke brukt i prediction
             )
 
             predictionViewModel.predictFishingConditions(trainingInput)
@@ -225,4 +225,4 @@ private fun WeatherDetail(
             )
         }
     }
-} 
+}
