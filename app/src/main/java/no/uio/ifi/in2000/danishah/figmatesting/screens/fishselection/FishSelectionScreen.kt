@@ -28,14 +28,18 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.getColorForSpecies
 
 
@@ -48,6 +52,11 @@ fun FishSelectionScreen(
     val availableSpecies by fishSpeciesViewModel.availableSpecies.collectAsState()
     val speciesStates by fishSpeciesViewModel.speciesStates.collectAsState()
     val isLoadingSpecies by fishSpeciesViewModel.isLoading.collectAsState()
+
+    val context = LocalContext.current
+    val weatherViewModel: WeatherViewModel = viewModel()
+
+
     
     Column(
         modifier = Modifier
@@ -191,8 +200,11 @@ fun FishSelectionScreen(
                                 } else {
                                     Switch(
                                         checked = state.isEnabled,
-                                        onCheckedChange = { fishSpeciesViewModel.toggleSpecies(scientificName) }
+                                        onCheckedChange = {
+                                            fishSpeciesViewModel.toggleSpecies(scientificName, weatherViewModel)
+                                        }
                                     )
+
                                 }
                             }
                             

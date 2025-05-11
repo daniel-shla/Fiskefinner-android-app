@@ -35,6 +35,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSpeciesViewModel
 
 
@@ -47,6 +49,9 @@ fun SpeciesPanel(
     val errorMessage by viewModel.errorMessage.collectAsState()
     val speciesStates by viewModel.speciesStates.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    val weatherViewModel: WeatherViewModel = viewModel()
+
     
     Card(
         modifier = Modifier
@@ -124,7 +129,7 @@ fun SpeciesPanel(
                         isLoading = isLoading && !state.isLoaded && state.isEnabled,
                         opacity = state.opacity,
                         onToggle = { 
-                            viewModel.toggleSpecies(scientificName)
+                            viewModel.toggleSpecies(scientificName, weatherViewModel)
                         },
                         onOpacityChange = { newOpacity ->
                             viewModel.updateSpeciesOpacity(scientificName, newOpacity)

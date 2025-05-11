@@ -6,7 +6,8 @@ package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
 data class FishSpeciesData(
     val scientificName: String,
     val commonName: String,
-    val polygons: List<List<Pair<Double, Double>>>
+    val polygons: List<List<Pair<Double, Double>>>,
+    val ratedPolygons: List<RatedPolygon> = emptyList(),
 ) {
     companion object {
         // Map of scientific names to common Norwegian names
@@ -33,6 +34,11 @@ data class FishSpeciesData(
         }
     }
 }
+
+data class RatedPolygon(
+    val points: List<Pair<Double, Double>>,
+    val rating: Int
+)
 
 // Extension function to capitalize the first letter of a string
 private fun String.capitalize(): String {

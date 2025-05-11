@@ -152,6 +152,8 @@ fun MapScreen(
         }
     }
 
+
+
     val mittFiskeViewModel: MittFiskeViewModel = viewModel(
         factory = MittFiskeViewModelFactory(
             MittFiskeRepository(
@@ -569,39 +571,31 @@ private fun drawFishSpeciesPolygons(
     color: Color,
     opacity: Float
 ) {
-    // Safety check for null manager
-    if (polygonManager == null || fishSpecies.polygons.isEmpty()) {
-        return
-    }
+    if (polygonManager == null || fishSpecies.ratedPolygons.isEmpty()) return
 
-    // Increased max polygons to take advantage of simplified files
-    val maxPolygons = 2000 // Increased from 1000
-    val polygonsToShow = if (fishSpecies.polygons.size > maxPolygons) {
-        val step = fishSpecies.polygons.size / maxPolygons
-        fishSpecies.polygons.filterIndexed { index, _ -> index % step == 0 }.take(maxPolygons)
+    val maxPolygons = 2000
+    val polygonsToShow = if (fishSpecies.ratedPolygons.size > maxPolygons) {
+        val step = fishSpecies.ratedPolygons.size / maxPolygons
+        fishSpecies.ratedPolygons.filterIndexed { index, _ -> index % step == 0 }.take(maxPolygons)
     } else {
-        fishSpecies.polygons
+        fishSpecies.ratedPolygons
     }
 
-    // Convert the Jetpack Compose color to Android color with alpha
     val colorWithoutAlpha = "#${color.toArgb().toHexString().substring(2)}"
-
-    // Create colors with the proper opacity/alpha values
     val fillColor = AndroidColor.parseColor(colorWithoutAlpha)
     val fillOpacity = opacity.toDouble()
     val outlineColor = AndroidColor.BLACK
 
     var firstPolygonFirstPoint: Point? = null
 
-    // Batch processing polygons to improve performance
     val batchSize = 100
     val batches = polygonsToShow.chunked(batchSize)
 
     batches.forEach { batchPolygons ->
         val batchAnnotations = batchPolygons.mapNotNull { polygon ->
-            if (polygon.size < 3) return@mapNotNull null
+            if (polygon.points.size < 3) return@mapNotNull null
 
-            val points = polygon.map { (lat, lng) -> Point.fromLngLat(lng, lat) }
+            val points = polygon.points.map { (lat, lng) -> Point.fromLngLat(lng, lat) }
             val closedPoints = if (points.first() != points.last()) points + points.first() else points
 
             if (firstPolygonFirstPoint == null) {
@@ -615,11 +609,9 @@ private fun drawFishSpeciesPolygons(
                 .withFillOutlineColor(outlineColor)
         }
 
-        // Create polygon annotations in batch
         polygonManager.create(batchAnnotations)
     }
 
-    // Store the first polygon's first point for teleportation
     if (firstPolygonFirstPoint != null) {
         lastFirstPolygonPoint = firstPolygonFirstPoint
     }
