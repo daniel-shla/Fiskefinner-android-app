@@ -29,33 +29,26 @@ import kotlin.math.sqrt
 
 class MapViewModel(private val repository: LocationRepository = LocationRepository()) : ViewModel() {
     
-    // Search query
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
     
-    // Search results from repository
     val searchResults = repository.searchResults
     
-    // Loading state
     val isLoading = repository.isLoading
     
-    // Search active state
     private val _isSearchActive = MutableStateFlow(false)
     val isSearchActive = _isSearchActive.asStateFlow()
     
-    // Selected suggestion
     private val _selectedSuggestion = MutableStateFlow<SearchSuggestion?>(null)
     val selectedSuggestion = _selectedSuggestion.asStateFlow()
     
-    // Current map center
     private val _mapCenter = MutableStateFlow(LocationDataSource.NORWAY_CENTER)
     val mapCenter = _mapCenter.asStateFlow()
     
-    // Current zoom level
     private val _zoomLevel = MutableStateFlow(LocationDataSource.COUNTRY_ZOOM)
     val zoomLevel = _zoomLevel.asStateFlow()
     
-    // Debounce search job
     private var searchJob: Job? = null
 
     private val _shouldDraw = MutableStateFlow(false)
@@ -74,18 +67,14 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         query.isNotEmpty() && query.length < 3 && active
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    //Update search query and trigger search
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
         
-        // Cancel previous search job
         searchJob?.cancel()
         
-        // Clear selected suggestion when query changes
         _selectedSuggestion.value = null
         
         if (query.length >= 3) {
-            // Show search results popup as user types
             _isSearchActive.value = true
             
             // Debounce search
@@ -124,16 +113,15 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             return
         }
         
-        // Otherwise perform a search and navigate to first result
+        // Otherwise: search and navigate to first result
         if (query.length < 3) return
         
         viewModelScope.launch {
-            // First search for the location
             repository.searchLocations(query, _mapCenter.value)
 
             delay(500)
             
-            // Navigate to the first result if available
+            // Nav to first result if available
             val results = searchResults.value
             if (results.isNotEmpty()) {
                 navigateToLocation(results.first())
@@ -233,7 +221,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
 
 
 
-    // Navigate to a location
+
     fun navigateToLocation(suggestion: SearchSuggestion) {
         viewModelScope.launch {
             val point = repository.getLocationDetails(suggestion.mapboxId)
@@ -244,24 +232,23 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         }
     }
     
-    // Navigate directly to a point
+
     fun navigateToPoint(point: Point) {
         _mapCenter.value = point
         _zoomLevel.value = LocationDataSource.DETAIL_ZOOM
     }
     
-    // Update map position
+
     fun updateMapPosition(center: Point, zoom: Double) {
         _mapCenter.value = center
         _zoomLevel.value = zoom
     }
-    
-    // Zoom in
+
     fun zoomIn() {
         _zoomLevel.value = (_zoomLevel.value + 1.0).coerceAtMost(18.0)
     }
     
-    // Zoom out
+
     fun zoomOut() {
         _zoomLevel.value = (_zoomLevel.value - 1.0).coerceAtLeast(1.0)
     }

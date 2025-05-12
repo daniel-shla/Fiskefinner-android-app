@@ -70,9 +70,9 @@ fun ClusterOverviewCard(
                 if (cluster.spots.size > 3) {
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "…og ${cluster.spots.size - 3} til",
+                        text = "…og ${cluster.spots.size - 3} til (zoom inn for mer)",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
 

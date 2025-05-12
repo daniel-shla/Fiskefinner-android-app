@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
-import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -13,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -26,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,7 +71,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import no.uio.ifi.in2000.danishah.figmatesting.R
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FishSpeciesData
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
@@ -81,6 +82,8 @@ import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSpecies
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.ClusterOverviewCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.LocationInfoCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.SearchResultsCard
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.MapHelpDialog
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.SpeciesLegend
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.getColorForSpecies
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModelFactory
@@ -93,10 +96,11 @@ fun MapScreen(
     viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory),
     fishSpeciesViewModel: FishSpeciesViewModel
 ) {
-    // Get screen density for map initialization
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
+
+    val showHelpDialog = remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -107,7 +111,6 @@ fun MapScreen(
     }
 
 
-    // Collect state from ViewModel
     val searchQuery by viewModel.searchQuery.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -207,7 +210,7 @@ fun MapScreen(
         mapViewportState.setCameraOptions(cameraOptions)
     }
 
-    // BEHOLD NULLCHECKS VED CAMERASTATE; IKKE ENDRE!
+    // KEEP NULLCHECKS AS THEY ARE
     remember(mapViewportState.cameraState?.center, mapViewportState.cameraState?.zoom) {
         mapViewportState.cameraState?.center?.let { center ->
             mapViewportState.cameraState!!.zoom.let { zoom ->
@@ -460,7 +463,10 @@ fun MapScreen(
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = Color.White,
-                    focusedContainerColor = Color.White
+                    focusedContainerColor = Color.White,
+                    unfocusedTextColor = Color.Black,
+                    focusedTextColor = Color.Black,
+                    cursorColor = Color.Black
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(
@@ -509,10 +515,6 @@ fun MapScreen(
                     onClose = { selectedLocation.value = null } // <- her lukker du kortet
                 )
             }
-
-
-            // Vis info hvis en cluster med flere spots er valgt
-
         }
 
         Column(
@@ -562,6 +564,33 @@ fun MapScreen(
                 }
             }
         }
+        
+        // Help button in bottom left
+        SmallFloatingActionButton(
+            onClick = { showHelpDialog.value = true },
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp)
+                .size(40.dp)
+        ) {
+            Icon(Icons.Default.QuestionMark, contentDescription = "Hjelp")
+        }
+        
+        // Species legend below search bar (not at bottom-right anymore)
+        if (speciesStates.values.any { it.isEnabled && it.isLoaded }) {
+            SpeciesLegend(
+                speciesStates = speciesStates,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 90.dp, start = 16.dp) // Position it below the search bar, to the left
+            )
+        }
+    }
+    
+    // Show help dialog when needed
+    if (showHelpDialog.value) {
+        MapHelpDialog(onDismiss = { showHelpDialog.value = false })
     }
 }
 

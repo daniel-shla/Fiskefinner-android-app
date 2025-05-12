@@ -28,7 +28,7 @@ class WeatherViewModel() : ViewModel() {
                 val data = repository.getWeather(lat, lon)
                 _uiState.value = WeatherUiState.Success(data)
             } catch (e: Exception) {
-                _uiState.value = WeatherUiState.Error("Feil ved henting av værdata: ${e.message}")
+                _uiState.value = WeatherUiState.Error("Error collecting weather data: ${e.message}")
             }
         }
     }

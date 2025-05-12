@@ -6,18 +6,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserPreferences(
     val name: String = "",
-    val fishingLevel: String = "Ivrig fisker", // Store user's selected fishing level
+    val fishingLevel: String = "Ivrig fisker", // For fun, every user is "Ivrig fisker"
     
-    val temperaturePreference: Int = 3,    // warmt vs. kaldt
-    val windPreference: Int = 3,           // lite vind vs. mye vind
-    val rainPreference: Int = 3,           // tørt vs. regnete
-    val pressurePreference: Int = 3,       // høyt trykk vs. lav trykk
-    val cloudPreference: Int = 3,          // klar himmel vs. ææææ
+    val temperaturePreference: Int = 3,
+    val windPreference: Int = 3,
+    val rainPreference: Int = 3,
+    val pressurePreference: Int = 3,
+    val cloudPreference: Int = 3,
     
     // Time preferences
-    val morningPreference: Int = 3,        // tidlig
-    val afternoonPreference: Int = 3,      // ettermiddag
-    val eveningPreference: Int = 3,        // kveld
+    val morningPreference: Int = 3,
+    val afternoonPreference: Int = 3,
+    val eveningPreference: Int = 3,
     
     // Seasonal preferences
     val springPreference: Int = 3,

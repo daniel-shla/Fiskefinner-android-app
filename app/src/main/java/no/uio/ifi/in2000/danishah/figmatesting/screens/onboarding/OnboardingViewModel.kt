@@ -19,15 +19,7 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
     
     private val _uiState = MutableStateFlow(UserPreferences())
     val uiState: StateFlow<UserPreferences> = _uiState.asStateFlow()
-    
-    val fishingLevels = listOf(
-        "Nybegynner",
-        "Hobbyfisker",
-        "Ivrig fisker",
-        "Erfaren fisker",
-        "THE BOSS"
-    )
-    
+
     init {
         viewModelScope.launch {
             repository.userPreferencesFlow.collect { preferences ->
@@ -35,15 +27,13 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
-    
+
+    //THE AMOUNT OF BOILERPLATE RREEEEEEEEEEE
+
     fun updateName(name: String) {
         _uiState.value = _uiState.value.copy(name = name)
     }
-    
-    fun updateFishingLevel(level: String) {
-        _uiState.value = _uiState.value.copy(fishingLevel = level)
-    }
-    
+
     fun updateTemperaturePreference(value: Int) {
         _uiState.value = _uiState.value.copy(temperaturePreference = value)
     }

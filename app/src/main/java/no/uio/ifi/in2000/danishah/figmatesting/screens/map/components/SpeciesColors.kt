@@ -2,9 +2,7 @@ package no.uio.ifi.in2000.danishah.figmatesting.screens.map.components
 
 import androidx.compose.ui.graphics.Color
 
-/**
- * Get a unique color for each species
- */
+
 fun getColorForSpecies(scientificName: String): Color {
     // Map of species to specific colors
     val speciesColors = mapOf(

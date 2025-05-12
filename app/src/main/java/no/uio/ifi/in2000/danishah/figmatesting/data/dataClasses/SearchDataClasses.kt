@@ -3,8 +3,7 @@ package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
 import com.mapbox.geojson.Point
 import kotlinx.serialization.Serializable
 
-// DET SER UT SOM AT DET ER MYE SOM ER MASSE FEIL HER, MEN ALT ER RIKTIG
-// IKKE ENDRE NOE
+// IT LOOKS LIKE THERE ARE ERRORS/WARNINGS HERE BUT DO NOT TOUCH, APP REQUIRES THIS STATE
 
 @Serializable
 data class SearchSuggestion(

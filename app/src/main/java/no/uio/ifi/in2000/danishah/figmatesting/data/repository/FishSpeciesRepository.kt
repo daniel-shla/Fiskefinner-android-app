@@ -12,9 +12,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.toFishSpeciesDat
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-/**
- * Repository for working with fish species data from GeoJSON files in assets
- */
+
 class FishSpeciesRepository(private val context: Context) {
     
     // Create a Gson instance that is more tolerant of malformed JSON
@@ -44,9 +42,7 @@ class FishSpeciesRepository(private val context: Context) {
         )
     }
     
-    /**
-     * Get a list of all available fish species with their scientific and common names
-     */
+
     fun getAvailableFishSpecies(): List<FishSpeciesData> {
         return AVAILABLE_SPECIES.map { scientificName ->
             FishSpeciesData(
@@ -57,17 +53,13 @@ class FishSpeciesRepository(private val context: Context) {
         }
     }
     
-    /**
-     * Load polygon data for a specific fish species from GeoJSON file
-     */
+
     suspend fun loadFishSpeciesPolygons(scientificName: String): FishSpeciesData? {
         return withContext(Dispatchers.IO) {
             try {
-                // First try the simplified version, then fall back to the original
                 val simplifiedFileName = "simplified_${scientificName}.json"
                 val originalFileName = "${scientificName.replace("_", " ")}.json"
                 
-                // Try simplified file first, then the original formats
                 val fileNameToUse = when {
                     assetExists(simplifiedFileName) -> {
                         Log.d(TAG, "Using simplified data file: $simplifiedFileName")
@@ -75,7 +67,6 @@ class FishSpeciesRepository(private val context: Context) {
                     }
                     assetExists(originalFileName) -> originalFileName
                     else -> {
-                        // Try alternative formats if neither simplified nor original exists
                         val alternativeNames = listOf(
                             "${scientificName}.json",                         // dicentrarchus_labrax.json
                             "${scientificName.split("_").last()}.json",       // labrax.json
@@ -134,9 +125,7 @@ class FishSpeciesRepository(private val context: Context) {
         }
     }
     
-    /**
-     * Check if an asset file exists
-     */
+
     private fun assetExists(fileName: String): Boolean {
         return try {
             context.assets.open(fileName).use { true }
@@ -145,9 +134,7 @@ class FishSpeciesRepository(private val context: Context) {
         }
     }
     
-    /**
-     * Get the size of an asset file in bytes
-     */
+
     private fun getAssetFileSize(fileName: String): Long {
         return try {
             context.assets.openFd(fileName).length
