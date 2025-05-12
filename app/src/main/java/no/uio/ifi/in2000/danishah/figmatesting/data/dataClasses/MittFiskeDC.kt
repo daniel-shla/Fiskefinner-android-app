@@ -1,4 +1,5 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
+import android.graphics.Bitmap
 import kotlinx.serialization.Serializable
 
 import com.mapbox.geojson.Point
@@ -6,7 +7,7 @@ import com.mapbox.geojson.Point
 data class Cluster(
     val center: Point,
     val spots: List<MittFiskeLocation>,
-    val averageRating: Float? = null
+    val averageRating: Float? = null,
 )
 
 

@@ -77,6 +77,8 @@ class WeatherViewModel() : ViewModel() {
     }
 
     suspend fun getWeatherForLocation(lat: Double, lon: Double): TimeSeries {
+        Log.d("WEATHER_API", "LOADING Weather data")
+
         return repository.getWeather(lat, lon)
             .properties
             .timeseries

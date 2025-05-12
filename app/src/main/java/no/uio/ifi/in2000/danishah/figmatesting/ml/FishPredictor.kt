@@ -66,8 +66,8 @@ class FishPredictor(context: Context) {
         val probs = output[0]
         val predictedClass = probs.indices.maxByOrNull { probs[it] } ?: -1
 
-        Log.d("AI_PREDICTION", "Probabilities: ${probs.joinToString()}")
-        Log.d("AI_PREDICTION", "Predicted class: $predictedClass (Confidence: ${probs[predictedClass]})")
+        //Log.d("AI_PREDICTION", "Probabilities: ${probs.joinToString()}")
+        //Log.d("AI_PREDICTION", "Predicted class: $predictedClass (Confidence: ${probs[predictedClass]})")
 
         return predictedClass
     }

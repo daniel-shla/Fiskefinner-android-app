@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FishSpeciesData
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.RatedPolygon
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TimeSeries
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.FishSpeciesRepository
 import no.uio.ifi.in2000.danishah.figmatesting.ml.FishPredictor
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
@@ -38,7 +39,10 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
     
     private val maxConcurrentSpecies = 8
-    
+
+    private val weatherCache = mutableMapOf<Pair<Int, Int>, TimeSeries>()
+
+
     init {
         loadAvailableSpecies()
     }
@@ -84,7 +88,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
                         // Update with loaded data
                         val ratedData = rateOneSpecies(fishData, weatherViewModel)
                         currentStates[scientificName] = SpeciesState(
-                            species = fishData,
+                            species = ratedData,
                             isEnabled = true,
                             isLoaded = true
                         )
@@ -160,12 +164,15 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
 
             val (lon, lat) = getCentroid(polygon)
 
-            val weather = try {
-                weatherViewModel.getWeatherForLocation(lat, lon)
-            } catch (e: Exception) {
-                Log.d("FishRating", " Værfeil for polygon ($lat, $lon): ${e.message}")
-                null
-            } ?: return@mapNotNull null
+            val key = coordinateKey(lat, lon)
+            val weather = weatherCache.getOrPut(key) {
+                try {
+                    weatherViewModel.getWeatherForLocation(lat, lon)
+                } catch (e: Exception) {
+                    null
+                }!!
+            }
+
 
             val input = floatArrayOf(
                 weather.data.instant.details.air_temperature.toFloat(),
@@ -179,13 +186,17 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
 
             val rating = predictor.predict(input)
             teller+=1
-            Log.d("FishRating", " Rated polygon ($lat, $lon): $rating $teller")
+            if (teller % 100 == 0) {
+                Log.d("RATING", "Rating polygon #$teller: $rating")
+            }
+            //Log.d("FishRating", " Rated polygon ($lat, $lon): $rating $teller")
 
             RatedPolygon(points = polygon, rating = rating)
         }
 
         return species.copy(ratedPolygons = rated)
     }
+
 
 
 
@@ -197,6 +208,12 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         val count = polygon.size
         return (sumLon / count) to (sumLat / count)
     }
+
+    private fun coordinateKey(lat: Double, lon: Double, precision: Double = 0.15): Pair<Int, Int> {
+        val factor = 1 / precision
+        return (lat * factor).toInt() to (lon * factor).toInt()
+    }
+
 
 
 

@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 
-import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.getPinResourceForRating
 import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -82,7 +81,6 @@ import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSpecies
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.ClusterOverviewCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.LocationInfoCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.SearchResultsCard
-import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.FishSpeciesDropdownButton
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.getColorForSpecies
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModelFactory
@@ -162,10 +160,40 @@ fun MapScreen(
         )
     )
     val mittFiskeState by mittFiskeViewModel.uiState.collectAsState()
-
     LaunchedEffect(Unit) {
-        //Gjør ingenting nå
+        val polygonWKT = "POLYGON((4.0 71.5, 4.0 57.9, 31.5 57.9, 31.5 71.5, 4.0 71.5))"
+        val pointWKT = "POINT(15.0 64.0)"
+
+        mittFiskeViewModel.preloadBitmaps(context)
+
+        mittFiskeViewModel.loadLocations(
+            polygonWKT = polygonWKT,
+            pointWKT = pointWKT,
+            weatherViewModel = weatherViewModel,
+            predictionViewModel = predictionViewModel,
+            selectedSpecies = "Ørret", // <<– viktig
+            onDone = {
+                mapViewRef.value?.let { mapView ->
+                    val bounds = mapView.getMapboxMap().coordinateBoundsForCamera(
+                        CameraOptions.Builder()
+                            .center(mapViewportState.cameraState?.center)
+                            .zoom(mapViewportState.cameraState?.zoom)
+                            .build()
+                    )
+                    currentBounds.value = bounds
+
+                    val visible = mittFiskeViewModel.filterLocationsInBounds(
+                        mittFiskeState.locations,
+                        bounds
+                    )
+
+                    viewModel.updateClusters(visible, zoomLevel)
+                    viewModel.triggerDraw()
+                }
+            }
+        )
     }
+
 
 
     LaunchedEffect(mapCenter, zoomLevel) {
@@ -209,7 +237,7 @@ fun MapScreen(
 
         // Draw each enabled species
         enabledSpecies.forEach { state ->
-            if (state.species.polygons.isNotEmpty()) {
+            if (state.species.ratedPolygons.isNotEmpty()) {
                 polygonAnnotationManagerRef.value?.let { manager ->
                     drawFishSpeciesPolygons(
                         manager,
@@ -233,7 +261,7 @@ fun MapScreen(
             polygonAnnotationManagerRef.value?.deleteAll()
 
             enabledSpecies.forEach { state ->
-                if (state.species.polygons.isNotEmpty()) {
+                if (state.species.ratedPolygons.isNotEmpty()) {
                     polygonAnnotationManagerRef.value?.let { manager ->
                         drawFishSpeciesPolygons(
                             manager,
@@ -268,9 +296,10 @@ fun MapScreen(
                     currentBounds.value = bounds
 
                     val visible = mittFiskeViewModel.filterLocationsInBounds(
-                        mittFiskeViewModel.getLocationsForSelectedSpecies(),
+                        mittFiskeState.locations,
                         bounds
                     )
+
 
                     viewModel.updateClusters(visible, zoomLevel)
                     viewModel.triggerDraw()
@@ -316,40 +345,47 @@ fun MapScreen(
                     .distinctUntilChanged()
                     .debounce(300)//kan justeres
                     .collect { (center, zoom) ->
-                        withContext(Dispatchers.Default) { //background work
-
+                        withContext(Dispatchers.Default) {
                             val mapView = mapViewRef.value ?: return@withContext
                             val bounds = mapView.mapboxMap.coordinateBoundsForCamera(
                                 CameraOptions.Builder().center(center).zoom(zoom).build()
                             )
 
-
                             val locations = mittFiskeState.locations
                             val visibleLocations = mittFiskeViewModel.filterLocationsInBounds(locations, bounds)
-
-
 
                             if (locations.isNotEmpty()) {
                                 viewModel.updateClusters(visibleLocations, zoom)
                                 viewModel.triggerDraw()
 
-                                withContext(Dispatchers.Main) { // Bare UI-arbeid
+                                // Forbered alle annotasjoner i bakgrunnen
+                                val newAnnotations = viewModel.clusters.value.map { cluster ->
+                                    val isCluster = cluster.spots.size > 1
+                                    val bitmap = if (isCluster) {
+                                        mittFiskeViewModel.getBitmapForCluster(cluster.averageRating)
+                                    } else {
+                                        mittFiskeViewModel.getBitmapForLocation(cluster.averageRating)
+                                    }
 
+                                    val options = PointAnnotationOptions()
+                                        .withPoint(cluster.center)
+                                        .withIconImage(bitmap)
+                                        .withIconSize(0.035)
+                                        .withTextField(cluster.averageRating.toString())
+                                        .withTextOffset(listOf(0.0, -2.0))
+                                        .withTextSize(12.0)
+
+                                    options to cluster.spots.first()
+                                }
+
+                                // Kun UI-operasjoner på hovedtråden
+                                withContext(Dispatchers.Main) {
                                     val manager = annotationManagerRef.value ?: return@withContext
                                     manager.deleteAll()
-                                    val bitmap = BitmapFactory.decodeResource(mapView.context.resources, R.drawable.yallaimg)
 
-                                    viewModel.clusters.value.forEach { cluster ->
-                                        val options = PointAnnotationOptions()
-                                            .withPoint(cluster.center)
-                                            .withIconImage(bitmap)
-                                            .withIconSize(if (cluster.spots.size == 1) 0.04 else 0.040)
-                                            .withTextField(cluster.averageRating.toString())
-                                            .withTextOffset(listOf(0.0, -2.0))
-                                            .withTextSize(12.0)
-
+                                    newAnnotations.forEach { (options, location) ->
                                         val annotation = manager.create(options)
-                                        annotationToLocation[annotation.id] = cluster.spots.first()
+                                        annotationToLocation[annotation.id] = location
                                     }
 
                                     manager.addClickListener { annotation ->
@@ -372,6 +408,7 @@ fun MapScreen(
                             }
                         }
                     }
+
             }
         }
 
@@ -484,43 +521,7 @@ fun MapScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            FishSpeciesDropdownButton(
-                speciesOptions = listOf(
-                    "Torsk", "Makrell", "Sei", "Ørret", "Sjøørret", "Laks", "Gjedde",
-                    "Røye", "Hyse", "Abbor", "Havabbor", "Steinbit", "Kveite", "Rødspette"
-                ),
-                onSelected = { selectedSpecies ->
-                    val polygonWKT = "POLYGON((4.0 71.5, 4.0 57.9, 31.5 57.9, 31.5 71.5, 4.0 71.5))"
-                    val pointWKT = "POINT(15.0 64.0)"
 
-                    mittFiskeViewModel.loadLocations(
-                        polygonWKT = polygonWKT,
-                        pointWKT = pointWKT,
-                        weatherViewModel = weatherViewModel,
-                        predictionViewModel = predictionViewModel,
-                        selectedSpecies = selectedSpecies,
-                        onDone = {
-                            mapViewRef.value?.let { mapView ->
-                                val bounds = mapView.getMapboxMap().coordinateBoundsForCamera(
-                                    CameraOptions.Builder()
-                                        .center(mapViewportState.cameraState?.center)
-                                        .zoom(mapViewportState.cameraState?.zoom)
-                                        .build()
-                                )
-                                currentBounds.value = bounds
-
-                                val visible = mittFiskeViewModel.filterLocationsInBounds(
-                                    mittFiskeViewModel.getLocationsForSelectedSpecies(),
-                                    bounds
-                                )
-
-                                viewModel.updateClusters(visible, zoomLevel)
-                                viewModel.triggerDraw()
-                            }
-                        }
-                    )
-                }
-            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -571,6 +572,7 @@ private fun drawFishSpeciesPolygons(
     color: Color,
     opacity: Float
 ) {
+
     if (polygonManager == null || fishSpecies.ratedPolygons.isEmpty()) return
 
     val maxPolygons = 2000
@@ -583,7 +585,7 @@ private fun drawFishSpeciesPolygons(
 
     val colorWithoutAlpha = "#${color.toArgb().toHexString().substring(2)}"
     val fillColor = AndroidColor.parseColor(colorWithoutAlpha)
-    val fillOpacity = opacity.toDouble()
+
     val outlineColor = AndroidColor.BLACK
 
     var firstPolygonFirstPoint: Point? = null
@@ -594,7 +596,8 @@ private fun drawFishSpeciesPolygons(
     batches.forEach { batchPolygons ->
         val batchAnnotations = batchPolygons.mapNotNull { polygon ->
             if (polygon.points.size < 3) return@mapNotNull null
-
+            val rating = polygon.rating
+            val fillOpacity = rating * 0.25
             val points = polygon.points.map { (lat, lng) -> Point.fromLngLat(lng, lat) }
             val closedPoints = if (points.first() != points.last()) points + points.first() else points
 

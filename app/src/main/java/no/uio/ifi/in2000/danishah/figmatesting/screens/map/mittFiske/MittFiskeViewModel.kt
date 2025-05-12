@@ -1,5 +1,8 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import no.uio.ifi.in2000.danishah.figmatesting.R
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TimeSeries
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
@@ -20,6 +24,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecas
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.math.roundToInt
 
 // UI state for viewmodelen
 data class MittFiskeUiState(
@@ -37,6 +42,9 @@ class MittFiskeViewModel(
     val uiState: StateFlow<MittFiskeUiState> = _uiState
 
     private val allLocations = mutableListOf<MittFiskeLocation>()
+
+    private val weatherCache = mutableMapOf<Pair<Int, Int>, TimeSeries>()
+
 
     // Henter lokasjoner og starter prediksjon
     fun loadLocations(
@@ -92,8 +100,9 @@ class MittFiskeViewModel(
         }
     }
 
+
     // Kjører prediksjon for alle lokasjoner og oppdaterer rating basert på predikert klasse
-    fun rateAllLocationsWithAI(
+    private fun rateAllLocationsWithAI(
         weatherViewModel: WeatherViewModel,
         predictionViewModel: PredictionViewModel,
         selectedSpecies: String,
@@ -114,22 +123,22 @@ class MittFiskeViewModel(
 
             val rated = relevantLocations.mapNotNull { loc ->
                 try {
-                    val weather = weatherViewModel.getWeatherForLocation(
-                        lat = loc.p.coordinates[1],
-                        lon = loc.p.coordinates[0]
-                    )
+                    val lat = loc.p.coordinates[1]
+                    val lon = loc.p.coordinates[0]
+                    val key = coordinateKey(lat, lon)
+
+                    val weather = weatherCache.getOrPut(key) {
+                        weatherViewModel.getWeatherForLocation(lat, lon)
+                    }
+
 
                     val input = makeTrainingData(loc, weather, speciesId)
-
-                    Log.d("AI_INPUT", "Species ID: $speciesId for ${loc.name}")
-                    Log.d("AI_INPUT", "TrainingData: $input")
 
                     val predictedClass = withContext(Dispatchers.Default) {
                         predictionViewModel.predictFishingClass(input)
                     }
 
                     Log.d("AI_CLASS", "Class for ${loc.name}: $predictedClass")
-                    Log.d("RATING_CHECK", "Rating for ${loc.name}: ${predictedClass + 1}")
 
 
                     loc.copy(rating = predictedClass + 1) // Rating mellom 1–4
@@ -150,6 +159,10 @@ class MittFiskeViewModel(
 
         }
     }
+
+
+
+
 
     // Lager inputdata for modellen basert på vær og lokasjon
     private fun makeTrainingData(
@@ -181,6 +194,40 @@ class MittFiskeViewModel(
         )
     }
 
+    private val _bitmapsReady = MutableStateFlow(false)
+    val bitmapsReady: StateFlow<Boolean> = _bitmapsReady
+
+    lateinit var locationBitmaps: Map<Int, Bitmap>
+    lateinit var clusterBitmaps: Map<Int, Bitmap>
+
+    fun preloadBitmaps(context: Context) {
+        locationBitmaps = mapOf(
+            1 to BitmapFactory.decodeResource(context.resources, R.drawable.pin_location_rating_1),
+            2 to BitmapFactory.decodeResource(context.resources, R.drawable.pin_location_rating_2),
+            3 to BitmapFactory.decodeResource(context.resources, R.drawable.pin_location_rating_3),
+            4 to BitmapFactory.decodeResource(context.resources, R.drawable.pin_location_rating_4),
+        )
+        clusterBitmaps = mapOf(
+            1 to BitmapFactory.decodeResource(context.resources, R.drawable.pin_cluster_rating_1),
+            2 to BitmapFactory.decodeResource(context.resources, R.drawable.pin_cluster_rating_2),
+            3 to BitmapFactory.decodeResource(context.resources, R.drawable.pin_cluster_rating_3),
+            4 to BitmapFactory.decodeResource(context.resources, R.drawable.pin_cluster_rating_4),
+        )
+        _bitmapsReady.value = true
+    }
+
+
+    fun getBitmapForCluster(rating: Float?): Bitmap {
+        val rounded = rating?.roundToInt()?.coerceIn(1, 4) ?: 1
+        return clusterBitmaps[rounded]!!
+    }
+
+    fun getBitmapForLocation(rating: Float?): Bitmap {
+        val rounded = rating?.roundToInt()?.coerceIn(1, 4) ?: 1
+        return locationBitmaps[rounded]!!
+    }
+
+
     // Fjerner fiskearter vi ikke støtter i modelltreninga
     private fun extractSupportedFish(fe: List<String>?): List<String> {
         val supported = listOf(
@@ -209,4 +256,10 @@ class MittFiskeViewModel(
     fun selectSpecies(species: String) {
         _uiState.update { it.copy(selectedSpecies = species.trim().lowercase()) }
     }
+
+    private fun coordinateKey(lat: Double, lon: Double, precision: Double = 0.15): Pair<Int, Int> {
+        val factor = 1 / precision
+        return (lat * factor).toInt() to (lon * factor).toInt()
+    }
+
 }
