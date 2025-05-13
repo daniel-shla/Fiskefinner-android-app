@@ -42,8 +42,6 @@ android {
 
 dependencies {
     implementation(libs.accompanist.permissions)
-
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -52,8 +50,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("androidx.compose.ui:ui:1.8.1") // eller din Compose versjon
+    implementation("androidx.compose.ui:ui:1.8.1")
     implementation("androidx.compose.ui:ui-text:1.8.1")
+    implementation("io.ktor:ktor-client-core:2.3.4")
+
 
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")

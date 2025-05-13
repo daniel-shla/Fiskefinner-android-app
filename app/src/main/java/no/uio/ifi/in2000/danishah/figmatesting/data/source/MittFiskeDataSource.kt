@@ -1,14 +1,14 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.source
 
 import android.util.Log
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Loc
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.PointGeometry
 import org.json.JSONArray
-import org.json.JSONObject
 
 class MittFiskeDataSource(
     private val client: HttpClient
@@ -44,7 +44,7 @@ class MittFiskeDataSource(
                     val obj = jsonArray.getJSONObject(i)
 
                     val id = obj.getString("id")
-                    val name = obj.getString("name")
+                    var name = obj.getString("name")
 
                     val p = obj.getJSONObject("p")
                     val coordinates = p.getJSONArray("coordinates")
@@ -56,7 +56,7 @@ class MittFiskeDataSource(
                         )
                     )
 
-                    val locs = mutableListOf<Loc>()
+                    var locs = mutableListOf<Loc>()
                     val locsJson = obj.getJSONArray("locs")
                     for (j in 0 until locsJson.length()) {
                         val locJson = locsJson.getJSONObject(j)
@@ -75,6 +75,10 @@ class MittFiskeDataSource(
                                 de = locJson.getString("de")
                             )
                         )
+                    }
+                    if (name == "2 fiskeplasser"){
+                        locs = listOf(locs[1]).toMutableList()
+                        name = locs[0].n
                     }
 
                     result.add(

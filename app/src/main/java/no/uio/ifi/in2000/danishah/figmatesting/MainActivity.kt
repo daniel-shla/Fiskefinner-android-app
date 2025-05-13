@@ -1,9 +1,12 @@
 package no.uio.ifi.in2000.danishah.figmatesting
 
+import android.app.Application
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -17,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,6 +34,8 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.repository.UserPreferencesRe
 import no.uio.ifi.in2000.danishah.figmatesting.navigation.NavigationItem
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.DashboardScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.DashboardViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.FishSpeciesSelectionScreen
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LocationPickerScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSelectionScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSpeciesViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapScreen
@@ -52,6 +58,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FishingApp() {
     val navController = rememberNavController()
@@ -122,8 +129,12 @@ fun FishingApp() {
                     )
                 }
                 composable(NavigationItem.Dashboard.route) {
-                    DashboardScreen(viewModel = dashboardViewModel)
+                    DashboardScreen(
+                        viewModel = dashboardViewModel,
+                        navController = navController
+                    )
                 }
+
                 composable(NavigationItem.Profile.route) {
                     ProfileScreen(
                         viewModel = profileViewModel,
@@ -151,6 +162,16 @@ fun FishingApp() {
                         }
                     )
                 }
+                composable("fish_species_picker") {
+                    FishSpeciesSelectionScreen(navController = navController)
+                }
+
+                composable("location_picker") {
+                    LocationPickerScreen(navController = navController)
+                }
+
+
+
                 composable("onboarding") {
                     OnboardingScreen(
                         viewModel = onboardingViewModel,
@@ -165,7 +186,7 @@ fun FishingApp() {
 }
 
 @Composable
-fun application() = androidx.compose.ui.platform.LocalContext.current.applicationContext as android.app.Application
+fun application() = LocalContext.current.applicationContext as Application
 
 @Preview(showBackground = true)
 @Composable

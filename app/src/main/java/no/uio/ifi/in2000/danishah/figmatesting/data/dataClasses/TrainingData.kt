@@ -1,6 +1,7 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
 
 data class TrainingData(
+    val speciesId: Float,
     val temperature: Float,
     val windSpeed: Float,
     val precipitation: Float,
@@ -9,7 +10,5 @@ data class TrainingData(
     val timeOfDay: Float,
     val season: Float,
     val latitude: Float,
-    val longitude: Float,
-    val fishCaught: Int,
-    val speciesId: Float
+    val longitude: Float
 )

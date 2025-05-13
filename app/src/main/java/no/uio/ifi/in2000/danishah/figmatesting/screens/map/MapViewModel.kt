@@ -166,7 +166,6 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
             9 -> 13000.0
             10 -> 8000.0
             11 -> 6000.0
-            12 -> 4000.0
             else -> 0.0
         }
 

@@ -68,8 +68,7 @@ class MittFiskeViewModel(
                     _uiState.update {
                         it.copy(
                             locations = locations,
-                            isLoading = false,
-                            selectedSpecies = selectedSpecies.trim().lowercase()
+                            isLoading = false
                         )
                     }
 
@@ -112,7 +111,7 @@ class MittFiskeViewModel(
             val speciesId = SpeciesMapper.getId(selectedSpecies)
             if (speciesId < 0) return@launch
 
-            val selected = selectedSpecies.trim().lowercase()
+            val selected = "laks"
 
             val relevantLocations = allLocations.toList().filter { loc ->
                 val allFish = loc.locs.flatMap { it.fe ?: emptyList() }
@@ -121,7 +120,7 @@ class MittFiskeViewModel(
             }
 
 
-            val rated = relevantLocations.mapNotNull { loc ->
+            val rated = allLocations.mapNotNull { loc ->
                 try {
                     val lat = loc.p.coordinates[1]
                     val lon = loc.p.coordinates[0]
@@ -190,7 +189,6 @@ class MittFiskeViewModel(
             },
             latitude = loc.p.coordinates[1].toFloat(),
             longitude = loc.p.coordinates[0].toFloat(),
-            fishCaught = 0
         )
     }
 
