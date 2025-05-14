@@ -373,8 +373,7 @@ fun MapScreen(
                                     val options = PointAnnotationOptions()
                                         .withPoint(cluster.center)
                                         .withIconImage(bitmap)
-                                        .withIconSize(0.035)
-                                        .withTextField(cluster.averageRating.toString())
+                                        .withIconSize(0.05)
                                         .withTextOffset(listOf(0.0, -2.0))
                                         .withTextSize(12.0)
 
@@ -415,6 +414,15 @@ fun MapScreen(
             }
         }
 
+        if (speciesStates.values.any { it.isEnabled && it.isLoaded }) {
+            SpeciesLegend(
+                speciesStates = speciesStates,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 90.dp, start = 16.dp) // Position it below the search bar, to the left
+            )
+        }
+
         selectedCluster.value?.let { cluster ->
             Box(modifier = Modifier.fillMaxSize()) {
                 ClusterOverviewCard(
@@ -426,6 +434,8 @@ fun MapScreen(
                 )
             }
         }
+
+
 
         // Search bar container
         Box(
@@ -578,14 +588,7 @@ fun MapScreen(
         }
         
         // Species legend below search bar (not at bottom-right anymore)
-        if (speciesStates.values.any { it.isEnabled && it.isLoaded }) {
-            SpeciesLegend(
-                speciesStates = speciesStates,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(top = 90.dp, start = 16.dp) // Position it below the search bar, to the left
-            )
-        }
+
     }
     
     // Show help dialog when needed

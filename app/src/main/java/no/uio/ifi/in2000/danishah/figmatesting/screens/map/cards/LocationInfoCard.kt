@@ -8,7 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 
 @Composable
@@ -17,14 +19,49 @@ fun LocationInfoCard(
     modifier: Modifier = Modifier,
     onClose: () -> Unit
 ) {
-    Card(modifier = modifier, shape = RoundedCornerShape(12.dp)) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth(0.92f)
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
         Box {
-            Column(modifier = Modifier.padding(12.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Fiskeplass: ${location.name}", style = MaterialTheme.typography.titleMedium)
-                Text("Rating: ${location.rating ?: "ukjent"}")
-                Spacer(Modifier.height(8.dp))
-                Text("Antall registrerte posisjoner: ${location.locs.size}")
+
+                Text(
+                    text = location.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "⭐ ${location.rating ?: "?"}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "AI-vurdering",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Registrerte posisjoner: ${location.locs.size}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             IconButton(

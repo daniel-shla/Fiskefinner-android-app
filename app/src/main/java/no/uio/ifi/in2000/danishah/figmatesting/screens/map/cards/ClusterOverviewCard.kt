@@ -80,7 +80,7 @@ fun ClusterOverviewCard(
 
                 cluster.averageRating?.let {
                     Text(
-                        text = "Gjennomsnittlig AI-vurdering: ${"%.1f".format(it)} / 5",
+                        text = "Gjennomsnittlig AI-vurdering: ${"%.1f".format(it)} / 4",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium
                     )

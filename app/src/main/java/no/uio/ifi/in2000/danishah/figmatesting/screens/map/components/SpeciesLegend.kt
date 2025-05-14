@@ -63,7 +63,7 @@ fun SpeciesLegend(
     Card(
         modifier = modifier
             .padding(horizontal = 8.dp, vertical = 4.dp)
-            .width(180.dp),
+            .width(150 .dp),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = LightBlue,
@@ -82,7 +82,7 @@ fun SpeciesLegend(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Fiskearter på kartet",
+                text = "Arter på kartet",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = White,

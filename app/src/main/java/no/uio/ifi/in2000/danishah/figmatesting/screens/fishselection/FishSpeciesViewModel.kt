@@ -148,7 +148,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         _speciesStates.value = currentStates
     }
 
-
+/*
     suspend fun rateOneSpecies(
         species: FishSpeciesData,
         weatherViewModel: WeatherViewModel
@@ -196,6 +196,33 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         return species.copy(ratedPolygons = rated)
     }
 
+*/
+
+    suspend fun rateOneSpecies(
+        species: FishSpeciesData,
+        weatherViewModel: WeatherViewModel
+    ): FishSpeciesData {
+        val random = java.util.Random()
+        var teller = 0
+
+        val rated = species.polygons.mapNotNull { polygon ->
+            if (polygon.isEmpty()) {
+                Log.d("FishRating", "Tom polygon, hopper over")
+                return@mapNotNull null
+            }
+
+            teller += 1
+            val randomRating = random.nextFloat() * 10f // Rating mellom 0.0 og 10.0
+
+            if (teller % 100 == 0) {
+                Log.d("RATING", "Random rating for polygon #$teller: $randomRating")
+            }
+
+            RatedPolygon(points = polygon, rating = randomRating.toInt())
+        }
+
+        return species.copy(ratedPolygons = rated)
+    }
 
 
 
