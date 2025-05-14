@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard
 
+import kotlinx.coroutines.withContext
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Build
@@ -8,6 +9,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -45,9 +49,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.mapbox.geojson.Point
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.danishah.figmatesting.R
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
@@ -112,15 +119,38 @@ val LocalDateTimeSaver = Saver<LocalDateTime?, String>(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FishTripPlannerSection(navController: NavController) {
+
     val currentBackStackEntry = navController.currentBackStackEntryAsState().value
     val savedStateHandle = currentBackStackEntry?.savedStateHandle
+    val coroutineScope = rememberCoroutineScope()
+    var canNavigate by remember { mutableStateOf(true) }
+    var clickEnabled by remember { mutableStateOf(true) }
 
     val selectedSpeciesIdLive = savedStateHandle?.getLiveData<Int>("selectedSpeciesId")
     val selectedLocationLive = savedStateHandle?.getLiveData<Point>("selectedLocation")
 
     var selectedSpeciesId by remember { mutableStateOf<Int?>(null) }
     var selectedLocation by remember { mutableStateOf<Point?>(null) }
-    var selectedDateTime by rememberSaveable(stateSaver = LocalDateTimeSaver) { mutableStateOf<LocalDateTime?>(null) }
+    var selectedDateTime by rememberSaveable(stateSaver = LocalDateTimeSaver) {
+        mutableStateOf<LocalDateTime?>(
+            null
+        )
+    }
+    val canReturn = savedStateHandle?.get<Boolean>("canNavigateBackToSpeciesPicker") == true
+
+    LaunchedEffect(canReturn) {
+        if (canReturn) {
+            canNavigate = true
+            savedStateHandle?.set("canNavigateBackToSpeciesPicker", false)
+        }
+    }
+
+    val context = LocalContext.current
+    val dashboardViewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
+
+    var distanceSorted by remember { mutableStateOf<List<Pair<MittFiskeLocation, Double>>>(emptyList()) }
+    var aiSorted by remember { mutableStateOf<List<Pair<MittFiskeLocation, Float>>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
 
     LaunchedEffect(selectedSpeciesIdLive) {
         selectedSpeciesIdLive?.observeForever { id ->
@@ -133,19 +163,6 @@ fun FishTripPlannerSection(navController: NavController) {
             selectedLocation = point
         }
     }
-    LaunchedEffect(selectedSpeciesId, selectedLocation, selectedDateTime) {
-        if (selectedSpeciesId != null && selectedLocation != null && selectedDateTime != null) {
-            delay(500)
-        }
-    }
-
-
-    val context = LocalContext.current
-    val dashboardViewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory)
-
-    var distanceSorted by remember { mutableStateOf<List<Pair<MittFiskeLocation, Double>>>(emptyList()) }
-    var aiSorted by remember { mutableStateOf<List<Pair<MittFiskeLocation, Float>>>(emptyList()) }
-
 
     Card(
         shape = RoundedCornerShape(12.dp),
@@ -153,30 +170,29 @@ fun FishTripPlannerSection(navController: NavController) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
             ) {
                 Text(
                     "Fiskeplanlegger",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(start = 8.dp),
+                    modifier = Modifier.align(Alignment.Center),
                     textAlign = TextAlign.Center
-                    ,
                 )
 
                 Text(
                     text = "Reset",
                     modifier = Modifier
+                        .align(Alignment.TopEnd)
                         .clickable {
                             selectedSpeciesId = null
                             selectedDateTime = null
                             selectedLocation = null
                             distanceSorted = emptyList()
                             aiSorted = emptyList()
-
                             savedStateHandle?.remove<Int>("selectedSpeciesId")
                             savedStateHandle?.remove<Point>("selectedLocation")
                             savedStateHandle?.remove<String>("selectedDateTime")
@@ -185,8 +201,8 @@ fun FishTripPlannerSection(navController: NavController) {
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyMedium
                 )
-
             }
+
 
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -205,8 +221,19 @@ fun FishTripPlannerSection(navController: NavController) {
                         SpeciesMapper.getName(it)?.replaceFirstChar(Char::uppercase)
                     } ?: ""
                 ) {
-                    navController.navigate("fish_species_picker")
+                    if (canNavigate) {
+                        canNavigate = false
+                        savedStateHandle?.set("speciesNavigationInProgress", true)
+                        navController.navigate("fish_species_picker") {
+                            launchSingleTop = true
+                        }
+                    }
                 }
+
+
+
+
+
 
                 PlannerInputBox(
                     iconRes = R.drawable.clock,
@@ -224,7 +251,10 @@ fun FishTripPlannerSection(navController: NavController) {
                                         LocalDate.of(year, month + 1, dayOfMonth),
                                         LocalTime.of(hour, minute)
                                     )
-                                    savedStateHandle?.set("selectedDateTime", selectedDateTime!!.toString())
+                                    savedStateHandle?.set(
+                                        "selectedDateTime",
+                                        selectedDateTime!!.toString()
+                                    )
 
                                 },
                                 today.get(Calendar.HOUR_OF_DAY),
@@ -241,9 +271,17 @@ fun FishTripPlannerSection(navController: NavController) {
                     iconRes = R.drawable.pin,
                     label = selectedLocation?.let { "Valgt" } ?: ""
                 ) {
-                    navController.navigate("location_picker") {
-                        launchSingleTop = true
-                        restoreState = false
+                    if (canNavigate) {
+                        canNavigate = false
+                        coroutineScope.launch {
+                            Log.d("NAVIGATION", "Navigating to location_picker from Dashboard")
+                            navController.navigate("location_picker") {
+                                launchSingleTop = true
+                                restoreState = false
+                            }
+                            delay(500)
+                            canNavigate = true
+                        }
                     }
                 }
             }
@@ -252,111 +290,130 @@ fun FishTripPlannerSection(navController: NavController) {
 
                 LaunchedEffect(selectedSpeciesId, selectedLocation, selectedDateTime) {
                     if (selectedSpeciesId != null && selectedLocation != null && selectedDateTime != null) {
-                        delay(500)
-                        val selectedSpeciesName = SpeciesMapper.getName(selectedSpeciesId!!)?.lowercase() ?: "torsk"
+                        isLoading = true
+                        delay(300) // litt forsinkelse for smooth UX
+
+                        val selectedSpeciesName =
+                            SpeciesMapper.getName(selectedSpeciesId!!)?.lowercase() ?: "torsk"
                         val userLat = selectedLocation!!.latitude()
                         val userLon = selectedLocation!!.longitude()
-                        val polygonWKT = "POLYGON((4.0 71.5, 4.0 57.9, 31.5 57.9, 31.5 71.5, 4.0 71.5))"
+                        val polygonWKT =
+                            "POLYGON((4.0 71.5, 4.0 57.9, 31.5 57.9, 31.5 71.5, 4.0 71.5))"
                         val pointWKT = "POINT(15.0 64.0)"
 
-                        val result = dashboardViewModel.hentFiskeplasserForArt(
-                            brukerLat = userLat,
-                            brukerLon = userLon,
-                            selectedSpecies = selectedSpeciesName,
-                            polygonWKT = polygonWKT,
-                            pointWKT = pointWKT
-                        )
+                        val (sortedByDistance, sortedByAI) = withContext(Dispatchers.Default) {
+                            val result = dashboardViewModel.hentFiskeplasserForArt(
+                                brukerLat = userLat,
+                                brukerLon = userLon,
+                                selectedSpecies = selectedSpeciesName,
+                                polygonWKT = polygonWKT,
+                                pointWKT = pointWKT
+                            )
 
-                        distanceSorted = result
+                            val aiRated = result.map { (plass, _) ->
+                                async {
+                                    val lat = plass.p.coordinates[1]
+                                    val lon = plass.p.coordinates[0]
 
-                        aiSorted = result.map { (plass, _) ->
-                            async {
-                                val lat = plass.p.coordinates[1]
-                                val lon = plass.p.coordinates[0]
-
-                                val weather = dashboardViewModel.hentVaerFor(
-                                    lat = lat,
-                                    lon = lon,
-                                    tidspunkt = selectedDateTime!!,
-                                    repository = dashboardViewModel.repository
-                                )
-
-                                if (weather != null) {
-                                    val details = weather.data.instant.details
-
-                                    val trainingData = TrainingData(
-                                        speciesId = SpeciesMapper.getId(selectedSpeciesName),
-                                        temperature = details.air_temperature.toFloat(),
-                                        windSpeed = details.wind_speed.toFloat(),
-                                        precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
-                                        airPressure = details.air_pressure_at_sea_level.toFloat(),
-                                        cloudCover = details.cloud_area_fraction.toFloat(),
-                                        timeOfDay = selectedDateTime!!.hour.toFloat(),
-                                        season = selectedDateTime!!.monthValue / 3f,
-                                        latitude = lat.toFloat(),
-                                        longitude = lon.toFloat()
+                                    val weather = dashboardViewModel.hentVaerFor(
+                                        lat = lat,
+                                        lon = lon,
+                                        tidspunkt = selectedDateTime!!,
+                                        repository = dashboardViewModel.repository
                                     )
 
-                                    val predictor = FishPredictor(context)
-                                    val input = floatArrayOf(
-                                        trainingData.speciesId.toFloat(),
-                                        trainingData.temperature,
-                                        trainingData.windSpeed,
-                                        trainingData.precipitation,
-                                        trainingData.airPressure,
-                                        trainingData.cloudCover,
-                                        trainingData.timeOfDay,
-                                        trainingData.season,
-                                        trainingData.latitude,
-                                        trainingData.longitude
-                                    )
+                                    if (weather != null) {
+                                        val details = weather.data.instant.details
+                                        val trainingData = TrainingData(
+                                            speciesId = SpeciesMapper.getId(selectedSpeciesName),
+                                            temperature = details.air_temperature.toFloat(),
+                                            windSpeed = details.wind_speed.toFloat(),
+                                            precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat()
+                                                ?: 0f,
+                                            airPressure = details.air_pressure_at_sea_level.toFloat(),
+                                            cloudCover = details.cloud_area_fraction.toFloat(),
+                                            timeOfDay = selectedDateTime!!.hour.toFloat(),
+                                            season = selectedDateTime!!.monthValue / 3f,
+                                            latitude = lat.toFloat(),
+                                            longitude = lon.toFloat()
+                                        )
 
-                                    val scores = predictor.predictScores(input)
-                                    val probability = scores[2] + scores[3] // Bra + Fantastisk
+                                        val predictor = FishPredictor(context)
+                                        val input = floatArrayOf(
+                                            trainingData.speciesId.toFloat(),
+                                            trainingData.temperature,
+                                            trainingData.windSpeed,
+                                            trainingData.precipitation,
+                                            trainingData.airPressure,
+                                            trainingData.cloudCover,
+                                            trainingData.timeOfDay,
+                                            trainingData.season,
+                                            trainingData.latitude,
+                                            trainingData.longitude
+                                        )
 
-                                    Log.d("FISKE_AI", "Plass: ${plass.name} | Koord: $lat, $lon")
-                                    Log.d("FISKE_AI", "Sannsynlighetsscore: ${scores.joinToString()} | Sum klasse 2+3: $probability")
+                                        val scores = predictor.predictScores(input)
+                                        val probability = scores[2] + scores[3]
+                                        plass to probability
+                                    } else null
+                                }
+                            }.awaitAll().filterNotNull().sortedByDescending { it.second }
 
-                                    plass to probability
-                                } else null
-                            }
-                        }.awaitAll().filterNotNull().sortedByDescending { it.second }
+                            result to aiRated
+                        }
+
+                        distanceSorted = sortedByDistance
+                        aiSorted = sortedByAI
+                        isLoading = false
                     }
+                }
+            }
+            }
+        }
+
+    if (selectedSpeciesId != null && selectedLocation != null && selectedDateTime != null) {
+        if (isLoading) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    TopFishingSpots(
+                        "Nærmeste plasser",
+                        distanceSorted.take(3).map { it.first to it.second },
+                        shouldShowEmptyState = true
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    TopFishingSpots(
+                        "Beste fiskeforhold",
+                        aiSorted.take(3).map { it.first to it.second.toDouble() },
+                        shouldShowEmptyState = true
+                    )
                 }
             }
         }
     }
 
-    if (selectedSpeciesId != null && selectedLocation != null && selectedDateTime != null) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                TopFishingSpots(
-                    "Nærmeste fiskeplasser",
-                    distanceSorted.take(3).map { it.first to it.second },
-                    shouldShowEmptyState = true
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                TopFishingSpots(
-                    "Beste fiskeforhold",
-                    aiSorted.take(3).map { it.first to it.second.toDouble() },
-                    shouldShowEmptyState = true
-                )
-            }
-        }
     }
-}
-
-
-
 @Composable
-fun PlannerInputBox(iconRes: Int, label: String, onClick: () -> Unit) {
+fun PlannerInputBox(
+    iconRes: Int,
+    label: String,
+    onClick: () -> Unit
+) {
     Card(
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         modifier = Modifier
             .padding(4.dp)
@@ -380,67 +437,90 @@ fun PlannerInputBox(iconRes: Int, label: String, onClick: () -> Unit) {
         }
     }
 }
-@Composable
-fun TopFishingSpots(title: String, spots: List<Pair<MittFiskeLocation, Double>>, shouldShowEmptyState: Boolean) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
 
-        if (spots.isEmpty() && shouldShowEmptyState) {
+
+
+
+    @Composable
+    fun TopFishingSpots(
+        title: String,
+        spots: List<Pair<MittFiskeLocation, Double>>,
+        shouldShowEmptyState: Boolean,
+        isLoading: Boolean = false
+    ) {
+
+        Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "Ingen fiskeplasser funnet.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(8.dp)
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 8.dp),
+                textAlign = TextAlign.Center
             )
-        } else {
-            spots.forEachIndexed { index, (plass, verdi) ->
-                val backgroundColor = if (title.contains("Beste", ignoreCase = true)) {
-                    val base = MaterialTheme.colorScheme.primary
-                    when (index) {
-                        0 -> base.copy(alpha = 0.45f) // mest intens
-                        1 -> base.copy(alpha = 0.30f)
-                        2 -> base.copy(alpha = 0.15f)
-                        else -> base.copy(alpha = 0.1f)
-                    }
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                }
 
-
-                Card(
+            if (isLoading) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = backgroundColor)
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.Center
                 ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = "${index + 1}. ${plass.name}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium
-                        )
-                        if (!title.contains("Beste", ignoreCase = true)) {
-                            Text(
-                                text = "${"%.1f".format(verdi)} km unna",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        } else {
-                            Spacer(modifier = Modifier.height(14.dp)) // matcher omtrent høyden til tekstlinjen
-                        }
+                    CircularProgressIndicator()
+                }
+                return
+            }
 
+            if (spots.isEmpty() && shouldShowEmptyState) {
+                Text(
+                    text = "Ingen fiskeplasser funnet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(8.dp)
+                )
+            } else {
+                spots.forEachIndexed { index, (plass, verdi) ->
+                    val backgroundColor = if (title.contains("Beste", ignoreCase = true)) {
+                        val base = MaterialTheme.colorScheme.primary
+                        when (index) {
+                            0 -> base.copy(alpha = 0.45f) // mest intens
+                            1 -> base.copy(alpha = 0.30f)
+                            2 -> base.copy(alpha = 0.15f)
+                            else -> base.copy(alpha = 0.1f)
+                        }
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    }
+
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = CardDefaults.cardColors(containerColor = backgroundColor)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "${index + 1}. ${plass.name}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                            if (!title.contains("Beste", ignoreCase = true)) {
+                                Text(
+                                    text = "${"%.1f".format(verdi)} km unna",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else {
+                                Spacer(modifier = Modifier.height(14.dp)) // matcher omtrent høyden til tekstlinjen
+                            }
+                        }
                     }
                 }
-
+            }
         }
     }
-}
-}
 

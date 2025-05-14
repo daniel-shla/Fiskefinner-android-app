@@ -38,7 +38,7 @@ fun LocationPickerScreen(navController: NavController) {
                     Text(
                         text = "Velg lokasjon",
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(vertical = 0.dp)
+                        modifier = Modifier.padding(vertical = 0.dp),
                     )
                 },
 

@@ -9,13 +9,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.delay
 import no.uio.ifi.in2000.danishah.figmatesting.R
 import no.uio.ifi.in2000.danishah.figmatesting.ml.SpeciesMapper
 
@@ -30,7 +31,26 @@ fun FishSpeciesSelectionScreen(navController: NavController) {
     val supportedInlandSpecies = listOf(
         "ørret", "røye", "gjedde", "abbor", "laks"
     )
+    val previousHandle = navController.previousBackStackEntry?.savedStateHandle
 
+
+    DisposableEffect(Unit) {
+        onDispose {
+            previousHandle?.set("speciesNavigationInProgress", false)
+        }
+    }
+
+    val navigationInProgress = previousHandle?.get<Boolean>("speciesNavigationInProgress") ?: false
+
+    val allowClick = remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        if (navigationInProgress) {
+            delay(2000) // forhindrer utilsiktede klikk fra navigasjon
+            previousHandle?.set("speciesNavigationInProgress", false)
+        }
+        allowClick.value = true
+    }
 
     Scaffold(
         topBar = {
@@ -65,12 +85,13 @@ fun FishSpeciesSelectionScreen(navController: NavController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
+                            if (!navigationInProgress) return@clickable
                             val id = SpeciesMapper.getId(species).toInt()
-                            navController.previousBackStackEntry?.savedStateHandle?.set(
-                                "selectedSpeciesId",
-                                id
-                            )
+                            previousHandle?.set("selectedSpeciesId", id)
+                            previousHandle?.set("speciesNavigationInProgress", false)
+                            previousHandle?.set("canNavigateBackToSpeciesPicker", true)
                             navController.popBackStack()
+
                         }
                 ) {
                     Column(
