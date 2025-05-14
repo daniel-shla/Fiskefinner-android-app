@@ -119,7 +119,7 @@ val LocalDateTimeSaver = Saver<LocalDateTime?, String>(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FishTripPlannerSection(navController: NavController) {
-
+    val MAX_DISTANCE_KM = 150
     val currentBackStackEntry = navController.currentBackStackEntryAsState().value
     val savedStateHandle = currentBackStackEntry?.savedStateHandle
     val coroutineScope = rememberCoroutineScope()
@@ -151,6 +151,10 @@ fun FishTripPlannerSection(navController: NavController) {
     var distanceSorted by remember { mutableStateOf<List<Pair<MittFiskeLocation, Double>>>(emptyList()) }
     var aiSorted by remember { mutableStateOf<List<Pair<MittFiskeLocation, Float>>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
+    var distanceMap by remember {
+        mutableStateOf<Map<MittFiskeLocation, Double>>(emptyMap())
+    }
+
 
     LaunchedEffect(selectedSpeciesIdLive) {
         selectedSpeciesIdLive?.observeForever { id ->
@@ -224,12 +228,16 @@ fun FishTripPlannerSection(navController: NavController) {
                     if (canNavigate) {
                         canNavigate = false
                         savedStateHandle?.set("speciesNavigationInProgress", true)
-                        navController.navigate("fish_species_picker") {
-                            launchSingleTop = true
+
+                        coroutineScope.launch {
+                            navController.navigate("fish_species_picker") {
+                                launchSingleTop = true
+                            }
+                            delay(2000) // litt mer buffer
+                            canNavigate = true
                         }
                     }
                 }
-
 
 
 
@@ -302,40 +310,48 @@ fun FishTripPlannerSection(navController: NavController) {
                         val pointWKT = "POINT(15.0 64.0)"
 
                         val (sortedByDistance, sortedByAI) = withContext(Dispatchers.Default) {
+
+                            // 1. Hent alle plasser for valgt art
                             val result = dashboardViewModel.hentFiskeplasserForArt(
-                                brukerLat = userLat,
-                                brukerLon = userLon,
+                                brukerLat      = userLat,
+                                brukerLon      = userLon,
                                 selectedSpecies = selectedSpeciesName,
-                                polygonWKT = polygonWKT,
-                                pointWKT = pointWKT
+                                polygonWKT     = polygonWKT,
+                                pointWKT       = pointWKT
                             )
 
-                            val aiRated = result.map { (plass, _) ->
+                            // 2. Behold kun de som ligger innenfor MAX_DISTANCE_KM
+                            val nearby = result.filter { (_, distKm) -> distKm <= MAX_DISTANCE_KM }
+
+                            /* -------- NÆRMESTE (allerede sortert på distanse) -------- */
+                            val distanceSorted = nearby                       // <– ferdig
+
+                            /* -------- AI-RANGERING av de samme «nearby»-plassene ---- */
+                            val aiRated = nearby.map { (plass, _) ->
                                 async {
                                     val lat = plass.p.coordinates[1]
                                     val lon = plass.p.coordinates[0]
 
                                     val weather = dashboardViewModel.hentVaerFor(
-                                        lat = lat,
-                                        lon = lon,
-                                        tidspunkt = selectedDateTime!!,
+                                        lat        = lat,
+                                        lon        = lon,
+                                        tidspunkt  = selectedDateTime!!,
                                         repository = dashboardViewModel.repository
                                     )
 
                                     if (weather != null) {
                                         val details = weather.data.instant.details
                                         val trainingData = TrainingData(
-                                            speciesId = SpeciesMapper.getId(selectedSpeciesName),
-                                            temperature = details.air_temperature.toFloat(),
-                                            windSpeed = details.wind_speed.toFloat(),
-                                            precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat()
-                                                ?: 0f,
-                                            airPressure = details.air_pressure_at_sea_level.toFloat(),
-                                            cloudCover = details.cloud_area_fraction.toFloat(),
-                                            timeOfDay = selectedDateTime!!.hour.toFloat(),
-                                            season = selectedDateTime!!.monthValue / 3f,
-                                            latitude = lat.toFloat(),
-                                            longitude = lon.toFloat()
+                                            speciesId     = SpeciesMapper.getId(selectedSpeciesName),
+                                            temperature   = details.air_temperature.toFloat(),
+                                            windSpeed     = details.wind_speed.toFloat(),
+                                            precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
+                                            airPressure   = details.air_pressure_at_sea_level.toFloat(),
+                                            cloudCover    = details.cloud_area_fraction.toFloat(),
+                                            timeOfDay     = selectedDateTime!!.hour.toFloat(),
+                                            season        = selectedDateTime!!.monthValue / 3f,
+                                            latitude      = lat.toFloat(),
+                                            longitude     = lon.toFloat()
                                         )
 
                                         val predictor = FishPredictor(context)
@@ -353,16 +369,20 @@ fun FishTripPlannerSection(navController: NavController) {
                                         )
 
                                         val scores = predictor.predictScores(input)
-                                        val probability = scores[2] + scores[3]
+                                        val probability = scores[2] + scores[3]   // “bra” + “svært bra”
                                         plass to probability
                                     } else null
                                 }
-                            }.awaitAll().filterNotNull().sortedByDescending { it.second }
+                            }.awaitAll()
+                                .filterNotNull()
+                                .sortedByDescending { it.second }                 // høyest score øverst
 
-                            result to aiRated
+                            /* -- Returner begge lister som et Pair -- */
+                            distanceSorted to aiRated
                         }
 
                         distanceSorted = sortedByDistance
+                        distanceMap    = distanceSorted.toMap()   //  ←  ny linje
                         aiSorted = sortedByAI
                         isLoading = false
                     }
@@ -396,9 +416,10 @@ fun FishTripPlannerSection(navController: NavController) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     TopFishingSpots(
-                        "Beste fiskeforhold",
-                        aiSorted.take(3).map { it.first to it.second.toDouble() },
-                        shouldShowEmptyState = true
+                        title = "Beste fiskeforhold",
+                        spots               = aiSorted.take(3).map { it.first to it.second.toDouble() },
+                        shouldShowEmptyState = true,
+                        distanceMap         = distanceMap          // ← nytt
                     )
                 }
             }
@@ -446,8 +467,9 @@ fun PlannerInputBox(
         title: String,
         spots: List<Pair<MittFiskeLocation, Double>>,
         shouldShowEmptyState: Boolean,
+        distanceMap: Map<MittFiskeLocation, Double>? = null,   // ← nytt (med default)
         isLoading: Boolean = false
-    ) {
+    ){
 
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -481,18 +503,22 @@ fun PlannerInputBox(
                 )
             } else {
                 spots.forEachIndexed { index, (plass, verdi) ->
+
+                    /* ---------- bakgrunnsfarge pr. plass ---------- */
                     val backgroundColor = if (title.contains("Beste", ignoreCase = true)) {
                         val base = MaterialTheme.colorScheme.primary
                         when (index) {
-                            0 -> base.copy(alpha = 0.45f) // mest intens
+                            0 -> base.copy(alpha = 0.45f)   // mest intens
                             1 -> base.copy(alpha = 0.30f)
                             2 -> base.copy(alpha = 0.15f)
-                            else -> base.copy(alpha = 0.1f)
+                            else -> base.copy(alpha = 0.10f)
                         }
                     } else {
                         MaterialTheme.colorScheme.surfaceVariant
                     }
 
+                    /* ---------- NYTT: finn distansen (alltid) ---------- */
+                    val distKm = distanceMap?.get(plass) ?: verdi   // bruker kartet hvis det finnes
 
                     Card(
                         modifier = Modifier
@@ -503,20 +529,20 @@ fun PlannerInputBox(
                         colors = CardDefaults.cardColors(containerColor = backgroundColor)
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
+
+                            /* Navn + nummerering */
                             Text(
                                 text = "${index + 1}. ${plass.name}",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
-                            if (!title.contains("Beste", ignoreCase = true)) {
-                                Text(
-                                    text = "${"%.1f".format(verdi)} km unna",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            } else {
-                                Spacer(modifier = Modifier.height(14.dp)) // matcher omtrent høyden til tekstlinjen
-                            }
+
+                            /* Viser alltid «X km unna» – også for «Beste fiskeforhold» */
+                            Text(
+                                text  = "${"%.1f".format(distKm)} km unna",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }

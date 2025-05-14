@@ -65,15 +65,15 @@ class MittFiskeViewModel(
                     allLocations.clear()
                     allLocations.addAll(locations)
 
-                    _uiState.update {
-                        it.copy(
-                            locations = locations,
-                            isLoading = false
-                        )
-                    }
+                    _uiState.update { it.copy(locations = locations) }
 
-                    rateAllLocationsWithAI(weatherViewModel, predictionViewModel, selectedSpecies, onDone)
-
+                    /* start AI-rating; gir beskjed når ferdig */
+                    rateAllLocationsWithAI(
+                        weatherViewModel,
+                        predictionViewModel,
+                        selectedSpecies,
+                        onDone
+                    )
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -113,7 +113,7 @@ class MittFiskeViewModel(
 
             val selected = "laks"
 
-            val relevantLocations = allLocations.toList().filter { loc ->
+            val relevantLocations = allLocations.toList().filter { loc -> //Hjelpefunksjon for testing
                 val allFish = loc.locs.flatMap { it.fe ?: emptyList() }
                 val species = extractSupportedFish(allFish)
                 selected in species
@@ -148,14 +148,15 @@ class MittFiskeViewModel(
                 }
             }
 
-            _uiState.update {
-                it.copy(locations = rated, selectedSpecies = selected)
+            _uiState.update { it.copy(locations = rated, selectedSpecies = selected) }
+
+            withContext(Dispatchers.Main) {
+                _uiState.update { it.copy(isLoading = false) }
+                onDone?.invoke()
             }
 
-            withContext(Dispatchers.Main) { onDone?.invoke() }
             allLocations.clear()
             allLocations.addAll(rated)
-
         }
     }
 

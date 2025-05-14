@@ -3,6 +3,7 @@ package no.uio.ifi.in2000.danishah.figmatesting.screens.map
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -453,7 +454,7 @@ fun MapScreen(
                     .height(56.dp), // Litt høyere enn 48dp, men fortsatt kompakt
                 placeholder = {
                     Text(
-                        "Søk etter norske byer...",
+                        "Søk...",
                         style = MaterialTheme.typography.bodySmall // mindre font for å passe inn
                     )
                 },
@@ -516,15 +517,17 @@ fun MapScreen(
                     )
                 }
             }
+
             selectedLocation.value?.let { location ->
                 LocationInfoCard(
                     location = location,
+                    onClose  = { selectedLocation.value = null },
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(16.dp),
-                    onClose = { selectedLocation.value = null } // <- her lukker du kortet
+                        .align(Alignment.TopCenter)   // samme som cluster
+                        .padding(top = 60.dp)         // samme avstand
                 )
             }
+
         }
 
         Column(
@@ -543,6 +546,27 @@ fun MapScreen(
                 mapViewportState = mapViewportState,
                 launcher = launcher
             )
+        }
+        if (mittFiskeState.isLoading) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .align(Alignment.Center)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    strokeWidth = 4.dp
+                )
+                Text(
+                    "Laster fiskeplasser …",
+                    style  = MaterialTheme.typography.bodyMedium,
+                    color  = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(top = 60.dp)
+                )
+            }
         }
 
 

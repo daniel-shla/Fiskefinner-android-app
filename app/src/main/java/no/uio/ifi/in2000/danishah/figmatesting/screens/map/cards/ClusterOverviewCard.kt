@@ -8,9 +8,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
+
 
 @Composable
 fun ClusterOverviewCard(
@@ -20,84 +24,110 @@ fun ClusterOverviewCard(
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth(0.92f)
-            .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            .wrapContentWidth()
+            .widthIn(min = 200.dp, max = 340.dp)   // ikke bredere enn 340 dp
+            .shadow(6.dp, RoundedCornerShape(16.dp)),
+        shape  = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
     ) {
-        Box {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Spacer(modifier = Modifier.height(24.dp))
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            /* ---------- Tittel + X ---------- */
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Spacer(Modifier.size(48.dp))            // «dødvekt» = bredde til ikonknapp
 
                 Text(
-                    text = "${cluster.spots.size} fiskeplasser i dette området",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    text      = "${cluster.spots.size} fiskeplasser i dette området",
+                    style     = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    maxLines  = 2,
+                    modifier  = Modifier.weight(1f)     // ← skyver teksten til eksakt sentrum
                 )
 
-                Spacer(Modifier.height(12.dp))
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Default.Close, contentDescription = "Lukk")
+                }
+            }
 
-                cluster.spots.take(3).forEach { spot ->
-                    val loc = spot.locs.firstOrNull()
-                    Column(modifier = Modifier.padding(vertical = 6.dp)) {
+
+            Spacer(Modifier.height(8.dp))
+
+            /* ---------- Inntil tre fiskeplasser ---------- */
+            cluster.spots.take(3).forEach { spot ->
+                val loc = spot.locs.firstOrNull()
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.Top          // ← topp-anker
+                ) {
+                    /* -------- Venstre kolonne -------- */
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)                       // tar all bredde
+                            .padding(end = 8.dp)              // litt luft mot rating
+                    ) {
+                        /* Navn */
                         Text(
-                            text = spot.name,
-                            style = MaterialTheme.typography.bodyLarge,
+                            text       = spot.name,
+                            style      = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold
                         )
+
+                        /* Beskrivelse (kan bruke flere linjer) */
                         loc?.de?.let {
                             Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text      = it,
+                                style     = MaterialTheme.typography.bodySmall,
+                                color     = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("⭐ ${spot.rating ?: "?"}")
-                            loc?.fe?.takeIf { it.isNotEmpty() }?.let { features ->
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = features.joinToString(" • "),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+
+                        /* Features (viser alle – brytes automatisk) */
+                        loc?.fe?.takeIf { it.isNotEmpty() }?.let { feats ->
+                            Text(
+                                text      = feats.joinToString(" • "),
+                                style     = MaterialTheme.typography.labelSmall,
+                                color     = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
-                }
 
-                if (cluster.spots.size > 3) {
-                    Spacer(Modifier.height(4.dp))
+                    /* -------- Høyre kolonne (rating) -------- */
                     Text(
-                        text = "…og ${cluster.spots.size - 3} til (zoom inn for mer)",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                cluster.averageRating?.let {
-                    Text(
-                        text = "Gjennomsnittlig AI-vurdering: ${"%.1f".format(it)} / 4",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium
+                        text = "⭐ ${spot.rating ?: "?"}",
+                        modifier = Modifier.align(Alignment.Top) // optisk topp-justert
                     )
                 }
             }
 
-            IconButton(
-                onClick = onClose,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Lukk"
+            /* ---------- «…og X til» ---------- */
+            if (cluster.spots.size > 3) {
+                Text(
+                    "…og ${cluster.spots.size - 3} til (zoom inn for mer)",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            /* ---------- Gjennomsnittlig rating ---------- */
+            cluster.averageRating?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Gjennomsnittlig AI-vurdering: ${"%.1f".format(it)} / 4",
+                    style      = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
     }
 }
+
+
