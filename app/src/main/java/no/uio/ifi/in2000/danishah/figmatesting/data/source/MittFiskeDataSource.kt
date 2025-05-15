@@ -10,14 +10,14 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocatio
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.PointGeometry
 import org.json.JSONArray
 
-class MittFiskeDataSource(
+open class MittFiskeDataSource(
     private val client: HttpClient
 ) {
     companion object {
         private const val BASE_URL = "https://www.mittfiske.no/umbraco/mittfiske/map/locations"
     }
 
-    suspend fun fetchLocations(
+    open suspend fun fetchLocations(
         polygonWKT: String,
         pointWKT: String,
         min: Int,

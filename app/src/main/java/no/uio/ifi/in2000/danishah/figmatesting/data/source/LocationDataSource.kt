@@ -6,13 +6,13 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.apiclient.MapboxApiClient
 import java.util.UUID
 
 
-class LocationDataSource(private val api: MapboxApiClient = MapboxApiClient()) {
+open class LocationDataSource(private val api: MapboxApiClient = MapboxApiClient()) {
     
     // Session token for Mapbox Search API (Must be randomly generated each time, i think??)
     private var sessionToken = UUID.randomUUID().toString()
     
     // Reset session token - called when a search session is completed
-    fun resetSessionToken() {
+    open fun resetSessionToken() {
         sessionToken = UUID.randomUUID().toString()
     }
 
