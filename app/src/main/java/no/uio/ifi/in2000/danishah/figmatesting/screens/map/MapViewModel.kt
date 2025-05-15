@@ -41,7 +41,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
     val isSearchActive = _isSearchActive.asStateFlow()
     
     private val _selectedSuggestion = MutableStateFlow<SearchSuggestion?>(null)
-    val selectedSuggestion = _selectedSuggestion.asStateFlow()
+    private val selectedSuggestion = _selectedSuggestion.asStateFlow()
     
     private val _mapCenter = MutableStateFlow(LocationDataSource.NORWAY_CENTER)
     val mapCenter = _mapCenter.asStateFlow()
@@ -133,8 +133,8 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         }
     }
 
-    fun haversineDistance(a: Point, b: Point): Double {
-        val R = 6371000.0
+    private fun haversineDistance(a: Point, b: Point): Double {
+        val r = 6371000.0
         val dLat = Math.toRadians(b.latitude() - a.latitude())
         val dLon = Math.toRadians(b.longitude() - a.longitude())
         val lat1 = Math.toRadians(a.latitude())
@@ -143,7 +143,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         val aCalc = sin(dLat / 2).pow(2.0) + sin(dLon / 2).pow(2.0) * cos(lat1) * cos(lat2)
         val c = 2 * atan2(sqrt(aCalc), sqrt(1 - aCalc))
 
-        return R * c
+        return r * c
     }
 
 
@@ -154,7 +154,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         _clusters.value = clusterLocations(locations, zoom)
     }
 
-    fun clusterLocations(locations: List<MittFiskeLocation>, zoom: Double): List<Cluster> {
+    private fun clusterLocations(locations: List<MittFiskeLocation>, zoom: Double): List<Cluster> {
         val ratedLocations = locations.filter { it.rating != null }
 
         val maxDistance = when (zoom.toInt()) {
@@ -257,12 +257,12 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 if (modelClass.isAssignableFrom(MapViewModel::class.java)) {
-                    return MapViewModel(
-                        repository = LocationRepository()
-                    ) as T
+                    val viewModel = MapViewModel(repository = LocationRepository())
+                    return modelClass.cast(viewModel)!!
                 }
                 throw IllegalArgumentException("Unknown ViewModel class")
             }
+
         }
     }
 } 

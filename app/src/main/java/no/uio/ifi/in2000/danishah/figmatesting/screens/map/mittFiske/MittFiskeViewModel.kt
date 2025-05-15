@@ -3,7 +3,9 @@ package no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mapbox.maps.CoordinateBounds
@@ -47,6 +49,7 @@ class MittFiskeViewModel(
 
 
     // get location and start prediction
+    @RequiresApi(Build.VERSION_CODES.O)
     fun loadLocations(
         polygonWKT: String,
         pointWKT: String,
@@ -101,6 +104,7 @@ class MittFiskeViewModel(
 
 
     // run prediction for all locations and update rating based on predicted class
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun rateAllLocationsWithAI(
         weatherViewModel: WeatherViewModel,
         predictionViewModel: PredictionViewModel,
@@ -111,13 +115,7 @@ class MittFiskeViewModel(
             val speciesId = SpeciesMapper.getId(selectedSpecies)
             if (speciesId < 0) return@launch
 
-            val selected = "laks"
 
-            val relevantLocations = allLocations.toList().filter { loc -> // helper function for testing
-                val allFish = loc.locs.flatMap { it.fe ?: emptyList() }
-                val species = extractSupportedFish(allFish)
-                selected in species
-            }
 
 
             val rated = allLocations.mapNotNull { loc ->
@@ -148,7 +146,7 @@ class MittFiskeViewModel(
                 }
             }
 
-            _uiState.update { it.copy(locations = rated, selectedSpecies = selected) }
+            _uiState.update { it.copy(locations = rated) }
 
             withContext(Dispatchers.Main) {
                 _uiState.update { it.copy(isLoading = false) }
@@ -165,6 +163,7 @@ class MittFiskeViewModel(
 
 
     // create input data for the model based on weather and location
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun makeTrainingData(
         loc: MittFiskeLocation,
         weather: TimeSeries,
@@ -176,11 +175,11 @@ class MittFiskeViewModel(
 
         return TrainingData(
             speciesId = speciesId,
-            temperature = details.air_temperature.toFloat() ?: 0f,
-            windSpeed = details.wind_speed.toFloat() ?: 0f,
+            temperature = details.air_temperature.toFloat(),
+            windSpeed = details.wind_speed.toFloat(),
             precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
-            airPressure = details.air_pressure_at_sea_level.toFloat() ?: 0f,
-            cloudCover = details.cloud_area_fraction.toFloat() ?: 0f,
+            airPressure = details.air_pressure_at_sea_level.toFloat() ,
+            cloudCover = details.cloud_area_fraction.toFloat() ,
             timeOfDay = hour,
             season = when (now.monthValue) {
                 in 3..5 -> 1f

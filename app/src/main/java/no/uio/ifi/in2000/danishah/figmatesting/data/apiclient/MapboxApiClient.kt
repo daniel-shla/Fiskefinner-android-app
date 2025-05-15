@@ -8,6 +8,8 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.SearchSuggestion
 import org.json.JSONObject
@@ -35,7 +37,9 @@ class MapboxApiClient {
     ): List<SearchSuggestion> {
         try {
             // Encode query for URL
-            val encodedQuery = URLEncoder.encode(query, "UTF-8")
+            val encodedQuery = withContext(Dispatchers.IO) {
+                URLEncoder.encode(query, "UTF-8")
+            }
             
             // Build the URL for searching (DO NOT CHANGE)
             val url = "https://api.mapbox.com/search/searchbox/v1/suggest?" +
