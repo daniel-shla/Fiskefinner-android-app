@@ -17,7 +17,9 @@ data class TimeSeries(
 @Serializable
 data class Data(
     val instant: Instant,
-    val next_1_hours: NextHourData? = null // for ML
+    val next_1_hours: NextHourData? = null,
+    val next_6_hours: Next6HourData? = null
+    //val next_12_hours: Next12HourData? = null // for ML
 )
 
 @Serializable
@@ -26,6 +28,12 @@ data class Instant(val details: Details)
 // for treningsdata til ML (nedbør finnes ikke i Instant! trengs for modellen
 @Serializable
 data class NextHourData(val details: NextHourDetails)
+
+@Serializable
+data class Next6HourData(val details: Next6HourDetails)
+
+@Serializable
+data class Next12HourData(val details: Next12HourDetails)
 
 @Serializable
 data class Details(
@@ -37,6 +45,16 @@ data class Details(
 
 @Serializable
 data class NextHourDetails(
+    val precipitation_amount: Double // nedbørsmengde i mm til ML
+)
+
+@Serializable
+data class Next6HourDetails(
+    val precipitation_amount: Double // nedbørsmengde i mm til ML
+)
+
+@Serializable
+data class Next12HourDetails(
     val precipitation_amount: Double // nedbørsmengde i mm til ML
 )
 

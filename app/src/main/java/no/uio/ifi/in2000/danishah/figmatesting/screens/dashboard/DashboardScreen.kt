@@ -406,7 +406,14 @@ fun FishTripPlannerSection(navController: NavController) {
                                             speciesId     = SpeciesMapper.getId(selectedSpeciesName),
                                             temperature   = details.air_temperature.toFloat(),
                                             windSpeed     = details.wind_speed.toFloat(),
-                                            precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
+                                            precipitation = when {
+                                                weather.data.next_1_hours?.details?.precipitation_amount != null ->
+                                                    weather.data.next_1_hours.details.precipitation_amount.toFloat()
+                                                weather.data.next_6_hours?.details?.precipitation_amount != null ->
+                                                    weather.data.next_6_hours.details.precipitation_amount.toFloat()
+                                                else -> 0f
+                                            },
+                                            // precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
                                             airPressure   = details.air_pressure_at_sea_level.toFloat(),
                                             cloudCover    = details.cloud_area_fraction.toFloat(),
                                             timeOfDay     = selectedDateTime!!.hour.toFloat(),
