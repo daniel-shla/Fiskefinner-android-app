@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -119,7 +120,6 @@ val LocalDateTimeSaver = Saver<LocalDateTime?, String>(
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FishTripPlannerSection(navController: NavController) {
-    val MAX_DISTANCE_KM = 150
     val currentBackStackEntry = navController.currentBackStackEntryAsState().value
     val savedStateHandle = currentBackStackEntry?.savedStateHandle
     val coroutineScope = rememberCoroutineScope()
@@ -133,9 +133,16 @@ fun FishTripPlannerSection(navController: NavController) {
     var selectedLocation by remember { mutableStateOf<Point?>(null) }
     var selectedDateTime by rememberSaveable(stateSaver = LocalDateTimeSaver) {
         mutableStateOf<LocalDateTime?>(
-            null
-        )
+            null)
     }
+    var radiusKm by rememberSaveable { mutableStateOf(100) }   // standard
+    val radiusLive = savedStateHandle?.getLiveData<Int>("radiusKm")
+    LaunchedEffect(radiusLive) {
+        radiusLive?.observeForever { v -> radiusKm = v }
+    }
+    var showRadiusDialog by remember { mutableStateOf(false) }
+
+
     val canReturn = savedStateHandle?.get<Boolean>("canNavigateBackToSpeciesPicker") == true
 
     LaunchedEffect(canReturn) {
@@ -245,10 +252,13 @@ fun FishTripPlannerSection(navController: NavController) {
 
                 PlannerInputBox(
                     iconRes = R.drawable.clock,
-                    label = selectedDateTime?.format(DateTimeFormatter.ofPattern("d. MMM, HH:mm"))
+                    label   = selectedDateTime
+                        ?.format(DateTimeFormatter.ofPattern("dd.MM HH:mm"))
                         ?: ""
                 ) {
                     val today = Calendar.getInstance()
+                    val maxDateMillis = System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000
+
                     DatePickerDialog(
                         context,
                         { _, year, month, dayOfMonth ->
@@ -259,20 +269,20 @@ fun FishTripPlannerSection(navController: NavController) {
                                         LocalDate.of(year, month + 1, dayOfMonth),
                                         LocalTime.of(hour, minute)
                                     )
-                                    savedStateHandle?.set(
-                                        "selectedDateTime",
-                                        selectedDateTime!!.toString()
-                                    )
-
+                                    savedStateHandle?.set("selectedDateTime", selectedDateTime!!.toString())
                                 },
                                 today.get(Calendar.HOUR_OF_DAY),
-                                today.get(Calendar.MINUTE), true
+                                today.get(Calendar.MINUTE),
+                                true
                             ).show()
                         },
                         today.get(Calendar.YEAR),
                         today.get(Calendar.MONTH),
                         today.get(Calendar.DAY_OF_MONTH)
-                    ).show()
+                    ).apply {
+                        datePicker.maxDate = maxDateMillis
+                        datePicker.minDate = System.currentTimeMillis()
+                    }.show()
                 }
 
                 PlannerInputBox(
@@ -292,11 +302,35 @@ fun FishTripPlannerSection(navController: NavController) {
                         }
                     }
                 }
+                /* ---------- 1. Planner-boksen for radius  ---------- */
+                PlannerInputBox(
+                    iconRes = R.drawable.distance,     // ditt ikon
+                    label   = "$radiusKm km"
+                ) {
+                    if (!showRadiusDialog) {           // enkel «double-tap» beskyttelse
+                        showRadiusDialog = true        // trigge at dialogen vises
+                    }
+                }
+
+                /* ---------- 2. Vis dialogen rett etter Row-blokken ---------- */
+                if (showRadiusDialog) {
+                    ShowRadiusDialog(
+                        current   = radiusKm,
+                        onConfirm = { newKm ->
+                            radiusKm = newKm
+                            savedStateHandle?.set("radiusKm", newKm)
+                            showRadiusDialog = false
+                        },
+                        onDismiss = { showRadiusDialog = false }
+                    )
+                }
+
+
             }
 
             if (selectedSpeciesId != null && selectedDateTime != null && selectedLocation != null) {
 
-                LaunchedEffect(selectedSpeciesId, selectedLocation, selectedDateTime) {
+                LaunchedEffect(selectedSpeciesId, selectedLocation, selectedDateTime, radiusKm) {
                     if (selectedSpeciesId != null && selectedLocation != null && selectedDateTime != null) {
                         isLoading = true
                         delay(300) // litt forsinkelse for smooth UX
@@ -320,8 +354,7 @@ fun FishTripPlannerSection(navController: NavController) {
                                 pointWKT       = pointWKT
                             )
 
-                            // 2. Behold kun de som ligger innenfor MAX_DISTANCE_KM
-                            val nearby = result.filter { (_, distKm) -> distKm <= MAX_DISTANCE_KM }
+                            val nearby = result.filter { (_, distKm) -> distKm <= radiusKm }
 
                             /* -------- NÆRMESTE (allerede sortert på distanse) -------- */
                             val distanceSorted = nearby                       // <– ferdig
@@ -434,8 +467,10 @@ fun PlannerInputBox(
     onClick: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        shape  = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
         modifier = Modifier
             .padding(4.dp)
             .clickable { onClick() }
@@ -454,10 +489,19 @@ fun PlannerInputBox(
                     .size(40.dp)
                     .padding(bottom = 6.dp)
             )
-            Text(text = label, fontSize = 14.sp, textAlign = TextAlign.Center)
+            Text(
+                text      = label,
+                fontSize  = 12.sp,             // litt mindre tekst
+                textAlign = TextAlign.Center,
+                maxLines  = 1,                 // hold på én linje
+                overflow  = TextOverflow.Ellipsis,
+                fontWeight  = FontWeight.SemiBold,
+                softWrap  = false
+            )
         }
     }
 }
+
 
 
 
@@ -469,7 +513,7 @@ fun PlannerInputBox(
         shouldShowEmptyState: Boolean,
         distanceMap: Map<MittFiskeLocation, Double>? = null,   // ← nytt (med default)
         isLoading: Boolean = false
-    ){
+    ) {
 
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -539,7 +583,7 @@ fun PlannerInputBox(
 
                             /* Viser alltid «X km unna» – også for «Beste fiskeforhold» */
                             Text(
-                                text  = "${"%.1f".format(distKm)} km unna",
+                                text = "${"%.1f".format(distKm)} km unna",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -549,4 +593,47 @@ fun PlannerInputBox(
             }
         }
     }
+
+@Composable
+fun ShowRadiusDialog(
+    current: Int,
+    onConfirm: (Int) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var tmp by remember { mutableStateOf(current) }
+
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Text("OK",
+                modifier = Modifier.clickable { onConfirm(tmp) }.padding(8.dp),
+                color = MaterialTheme.colorScheme.primary)
+        },
+        dismissButton = {
+            Text("Avbryt",
+                modifier = Modifier.clickable(onClick = onDismiss).padding(8.dp))
+        },
+        title = { Text("Hvor langt er du villig til å reise?") },
+        text  = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("$tmp km", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Row(
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("–", fontSize = 32.sp,
+                        modifier = Modifier
+                            .clickable { if (tmp > 10)  tmp -= 10 }
+                            .padding(8.dp))
+                    Text("+", fontSize = 32.sp,
+                        modifier = Modifier
+                            .clickable { if (tmp < 500) tmp += 10 }
+                            .padding(8.dp))
+                }
+            }
+        }
+    )
+}
+
 

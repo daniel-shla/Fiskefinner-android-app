@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.compose.material3:material3:1.3.2")   // eller nyere
     implementation("androidx.compose.ui:ui:1.8.1")
     implementation("androidx.compose.ui:ui-text:1.8.1")
     implementation("io.ktor:ktor-client-core:2.3.4")

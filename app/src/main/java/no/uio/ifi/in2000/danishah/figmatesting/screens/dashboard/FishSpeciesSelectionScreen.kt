@@ -57,7 +57,7 @@ fun FishSpeciesSelectionScreen(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Hva ser du etter sjef?",
+                        text = "Velg art",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(vertical = 0.dp)
                     )
