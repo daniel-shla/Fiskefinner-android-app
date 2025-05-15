@@ -159,7 +159,7 @@ fun FishTripPlannerSection(navController: NavController) {
         mutableStateOf(
             null)
     }
-    var radiusKm by rememberSaveable { mutableStateOf(100) } // standard
+    var radiusKm by rememberSaveable { mutableIntStateOf(100) } // standard
     val radiusLive = savedStateHandle?.getLiveData<Int>("radiusKm")
     LaunchedEffect(radiusLive) {
         radiusLive?.observeForever { v -> radiusKm = v }
@@ -251,6 +251,9 @@ fun FishTripPlannerSection(navController: NavController) {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 PlannerInputBox(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp),
                     iconRes = R.drawable.fishbreh,
                     label = selectedSpeciesId?.let {
                         SpeciesMapper.getName(it)?.replaceFirstChar(Char::uppercase)
@@ -271,6 +274,9 @@ fun FishTripPlannerSection(navController: NavController) {
                 }
 
                 PlannerInputBox(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp),
                     iconRes = R.drawable.clock,
                     label   = selectedDateTime
                         ?.format(DateTimeFormatter.ofPattern("dd.MM HH:mm"))
@@ -306,6 +312,9 @@ fun FishTripPlannerSection(navController: NavController) {
                 }
 
                 PlannerInputBox(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp),
                     iconRes = R.drawable.pin,
                     label = selectedLocation?.let { "Valgt" } ?: ""
                 ) {
@@ -324,6 +333,9 @@ fun FishTripPlannerSection(navController: NavController) {
                 }
                 /* ---------- 1. Planner box for radiusKm  ---------- */
                 PlannerInputBox(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(100.dp),
                     iconRes = R.drawable.distance, // icon shown in the box
                     label   = "$radiusKm km"
                 ) {
@@ -486,6 +498,7 @@ fun FishTripPlannerSection(navController: NavController) {
 
 @Composable
 fun PlannerInputBox(
+    modifier: Modifier = Modifier,
     iconRes: Int,
     label: String,
     onClick: () -> Unit
@@ -495,10 +508,10 @@ fun PlannerInputBox(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
-        modifier = Modifier
+        modifier = modifier
             .padding(4.dp)
-            .clickable { onClick() }
-            .size(width = 80.dp, height = 100.dp),
+            .clickable { onClick() },
+
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
