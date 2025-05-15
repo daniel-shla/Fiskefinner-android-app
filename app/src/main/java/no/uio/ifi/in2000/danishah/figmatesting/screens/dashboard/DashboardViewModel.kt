@@ -43,26 +43,37 @@ class DashboardViewModel : ViewModel() {
 
     private val _weatherData = MutableStateFlow<WeatherData?>(null)
     val weatherData: StateFlow<WeatherData?> = _weatherData.asStateFlow()
-
+    private val _usingUserLocation = MutableStateFlow(false)
+    val usingUserLocation = _usingUserLocation.asStateFlow()
     val repository: WeatherRepository = WeatherRepository()
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
     val uiState: StateFlow<WeatherUiState> = _uiState
 
     init {
-        loadWeatherData()
+        loadWeatherData(59.9139, 10.7522)
+
+        viewModelScope.launch {
+            UserLocation.current.collect { point ->
+                if (point != null) {               // ny bruker-posisjon
+                    _usingUserLocation.value = true
+                    loadWeatherData(point.latitude(), point.longitude())
+                }
+            }
+        }
     }
 
-    private fun loadWeatherData() {
+    private fun loadWeatherData(lat: Double, lon: Double) {
         viewModelScope.launch {
             _uiState.value = WeatherUiState.Loading
             try {
-                val data = repository.getWeather(59.9139, 10.7522)
+                val data = repository.getWeather(lat, lon)
                 _uiState.value = WeatherUiState.Success(data)
             } catch (e: Exception) {
                 _uiState.value = WeatherUiState.Error("Feil ved henting av værdata: ${e.message}")
             }
         }
     }
+
 
     fun getCurrentWeather(): List<TimeSeries> {
         val weather = (uiState.value as? WeatherUiState.Success)?.weather

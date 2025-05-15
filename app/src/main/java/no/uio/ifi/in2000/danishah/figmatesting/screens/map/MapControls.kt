@@ -23,6 +23,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.geojson.Point
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.UserLocation
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapViewModel
 
 @Composable
@@ -63,8 +64,9 @@ fun MapControls(
                 fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                     .addOnSuccessListener { location ->
                         if (location != null) {
-                            val userLocation = Point.fromLngLat(location.longitude, location.latitude)
-                            viewModel.navigateToPoint(userLocation)
+                            val userPoint = Point.fromLngLat(location.longitude, location.latitude)
+                            UserLocation.update(userPoint)
+                            viewModel.navigateToPoint(userPoint)
                         } else {
                             Toast.makeText(context, "Fant ikke gjeldende posisjon", Toast.LENGTH_SHORT).show()
                         }
