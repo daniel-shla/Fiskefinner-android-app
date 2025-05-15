@@ -4,17 +4,14 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-05-15T09:19:35.712295Z">
+        <DropdownSelection timestamp="2025-05-15T11:46:09.379505Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/oscar/.android/avd/KOPI.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/sigurdnordbye/.android/avd/Pixel_4_API_36.avd" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
-      </SelectionState>
-      <SelectionState runConfigName="FishSpeciesRepositoryInstrumentedTest">
-        <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="LocationRepositoryTest">
         <option name="selectionMode" value="DROPDOWN" />

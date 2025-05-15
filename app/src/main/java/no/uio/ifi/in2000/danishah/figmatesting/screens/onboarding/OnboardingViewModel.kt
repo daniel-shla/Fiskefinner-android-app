@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.UserPreferences
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.UserPreferencesRepository
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
 
 
 class OnboardingViewModel(application: Application) : AndroidViewModel(application) {
@@ -27,6 +30,28 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
+
+    fun preloadFishLocations(
+        mittFiskeViewModel: MittFiskeViewModel,
+        weatherViewModel: WeatherViewModel,
+        predictionViewModel: PredictionViewModel,
+        polygonWKT: String,
+        pointWKT: String,
+        species: String,
+        onDone: () -> Unit
+    ) {
+        viewModelScope.launch {
+            mittFiskeViewModel.loadLocations(
+                polygonWKT = polygonWKT,
+                pointWKT = pointWKT,
+                weatherViewModel = weatherViewModel,
+                predictionViewModel = predictionViewModel,
+                selectedSpecies = species,
+                onDone = onDone
+            )
+        }
+    }
+
 
     //THE AMOUNT OF BOILERPLATE RREEEEEEEEEEE
 

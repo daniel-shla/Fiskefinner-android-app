@@ -2,7 +2,10 @@ package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForeca
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -83,6 +86,14 @@ class WeatherViewModel() : ViewModel() {
             .properties
             .timeseries
             .first() // returnerer værdata for nåværende tidspunkt
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                WeatherViewModel()
+            }
+        }
     }
 
 

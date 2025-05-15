@@ -84,10 +84,6 @@ class FishSpeciesRepository(private val context: Context) {
                     return@withContext null
                 }
                 
-                // Get file size to determine if we need special handling
-                val fileSize = getAssetFileSize(fileNameToUse)
-                Log.d(TAG, "File size of $fileNameToUse: ${fileSize / (1024 * 1024)} MB")
-                
                 // Parse the GeoJSON file with streaming to avoid memory issues
                 context.assets.open(fileNameToUse).use { inputStream ->
                     val reader = BufferedReader(InputStreamReader(inputStream))
@@ -143,4 +139,7 @@ class FishSpeciesRepository(private val context: Context) {
             -1
         }
     }
-} 
+}
+
+
+

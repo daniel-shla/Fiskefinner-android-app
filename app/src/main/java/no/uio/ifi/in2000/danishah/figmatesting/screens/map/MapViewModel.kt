@@ -192,6 +192,7 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
                 val updatedSpots = existing.spots + loc
                 val ratings = updatedSpots.mapNotNull { it.rating }
                 val avgRating = if (ratings.isNotEmpty()) ratings.average().toFloat() else null
+                //avgRating = if (ratings.contains(4)) 4.toFloat() else avgRating
 
                 clusters.remove(existing)
                 clusters.add(

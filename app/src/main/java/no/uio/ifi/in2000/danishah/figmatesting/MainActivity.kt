@@ -30,16 +30,23 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import io.ktor.client.HttpClient
+import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.UserPreferencesRepository
+import no.uio.ifi.in2000.danishah.figmatesting.data.source.MittFiskeDataSource
 import no.uio.ifi.in2000.danishah.figmatesting.navigation.NavigationItem
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.DashboardScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.DashboardViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.FishSpeciesSelectionScreen
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LocationPickerScreen
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSelectionScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSpeciesViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModelFactory
 import no.uio.ifi.in2000.danishah.figmatesting.screens.onboarding.OnboardingScreen
 import no.uio.ifi.in2000.danishah.figmatesting.screens.onboarding.OnboardingViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.profile.ProfileScreen
@@ -83,15 +90,29 @@ fun FishingApp() {
     val hasCompletedOnboarding by repository.hasCompletedOnboarding.collectAsState(initial = false)
     
     var showOnboarding by remember { mutableStateOf(!hasCompletedOnboarding) }
-    
+
+    val mittFiskeViewModel: MittFiskeViewModel = viewModel(
+        factory = MittFiskeViewModelFactory(
+            MittFiskeRepository(MittFiskeDataSource(HttpClient()))
+        )
+    )
+
+    val weatherViewModel: WeatherViewModel = viewModel(factory = WeatherViewModel.Factory)
+    val predictionViewModel: PredictionViewModel = viewModel(factory = PredictionViewModel.Factory)
+
+
     if (showOnboarding) {
         OnboardingScreen(
             viewModel = onboardingViewModel,
+            mittFiskeViewModel = mittFiskeViewModel,
+            weatherViewModel = weatherViewModel,
+            predictionViewModel = predictionViewModel,
             onComplete = {
                 showOnboarding = false
             }
         )
-    } else {
+    }
+    else {
         Scaffold(
             bottomBar = {
                 NavigationBar {
@@ -125,7 +146,8 @@ fun FishingApp() {
                 composable(NavigationItem.Map.route) {
                     MapScreen(
                         viewModel = mapViewModel,
-                        fishSpeciesViewModel = fishSpeciesViewModel // Pass the shared viewmodel
+                        fishSpeciesViewModel = fishSpeciesViewModel, // Pass the shared viewmodel
+                        mittFiskeViewModel
                     )
                 }
                 composable(NavigationItem.Dashboard.route) {
@@ -175,11 +197,15 @@ fun FishingApp() {
                 composable("onboarding") {
                     OnboardingScreen(
                         viewModel = onboardingViewModel,
+                        mittFiskeViewModel = mittFiskeViewModel,
+                        weatherViewModel = weatherViewModel,
+                        predictionViewModel = predictionViewModel,
                         onComplete = {
                             navController.popBackStack()
                         }
                     )
                 }
+
             }
         }
     }

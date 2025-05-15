@@ -3,7 +3,10 @@ package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -67,4 +70,14 @@ class PredictionViewModel(application: Application) : AndroidViewModel(applicati
             this.longitude
         )
     }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as Application
+                PredictionViewModel(app)
+            }
+        }
+    }
+
 }

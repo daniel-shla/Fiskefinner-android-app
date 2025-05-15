@@ -35,20 +35,43 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
+import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
 
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel,
+    mittFiskeViewModel: MittFiskeViewModel,
+    weatherViewModel: WeatherViewModel,
+    predictionViewModel: PredictionViewModel,
     onComplete: () -> Unit
-) {
+)
+ {
     val uiState by viewModel.uiState.collectAsState()
-    
+
+    LaunchedEffect(Unit) {
+        val polygonWKT = "POLYGON((4.0 71.5, 4.0 57.9, 31.5 57.9, 31.5 71.5, 4.0 71.5))"
+        val pointWKT = "POINT(15.0 64.0)"
+        viewModel.preloadFishLocations(
+            mittFiskeViewModel = mittFiskeViewModel,
+            weatherViewModel = weatherViewModel,
+            predictionViewModel = predictionViewModel,
+            polygonWKT = polygonWKT,
+            pointWKT = pointWKT,
+            species = "ørret",
+            onDone = {}
+        )
+    }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()

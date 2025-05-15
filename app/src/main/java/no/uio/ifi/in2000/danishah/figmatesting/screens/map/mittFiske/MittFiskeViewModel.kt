@@ -5,8 +5,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.mapbox.maps.CoordinateBounds
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +23,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TimeSeries
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.toPoint
 import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
+import no.uio.ifi.in2000.danishah.figmatesting.data.source.MittFiskeDataSource
 import no.uio.ifi.in2000.danishah.figmatesting.ml.SpeciesMapper
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
@@ -66,7 +71,7 @@ class MittFiskeViewModel(
                     allLocations.addAll(locations)
 
                     _uiState.update { it.copy(locations = locations) }
-
+                    Log.d("MITTFISKE", "antall steder: ${locations.size}")
                     /* start AI-rating; gir beskjed når ferdig */
                     rateAllLocationsWithAI(
                         weatherViewModel,
@@ -74,6 +79,7 @@ class MittFiskeViewModel(
                         selectedSpecies,
                         onDone
                     )
+
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -111,7 +117,7 @@ class MittFiskeViewModel(
             val speciesId = SpeciesMapper.getId(selectedSpecies)
             if (speciesId < 0) return@launch
 
-            val selected = "laks"
+            val selected = "ørret"
 
             val relevantLocations = allLocations.toList().filter { loc -> //Hjelpefunksjon for testing
                 val allFish = loc.locs.flatMap { it.fe ?: emptyList() }
@@ -160,7 +166,38 @@ class MittFiskeViewModel(
         }
     }
 
+/*
+private fun rateAllLocationsWithAI(
+    weatherViewModel: WeatherViewModel,
+    predictionViewModel: PredictionViewModel,
+    selectedSpecies: String,
+    onDone: (() -> Unit)? = null
+) {
+    viewModelScope.launch(Dispatchers.IO) {
+        val selected = "ørret"
 
+        val relevantLocations = allLocations.toList().filter { loc ->
+            val allFish = loc.locs.flatMap { it.fe ?: emptyList() }
+            val species = extractSupportedFish(allFish)
+            selected in species
+        }
+
+        val rated = allLocations.map { loc ->
+            loc.copy(rating = (1..4).random())
+        }
+
+        _uiState.update { it.copy(locations = rated, selectedSpecies = selected) }
+
+        withContext(Dispatchers.Main) {
+            _uiState.update { it.copy(isLoading = false) }
+            onDone?.invoke()
+        }
+
+        allLocations.clear()
+        allLocations.addAll(rated)
+    }
+}
+*/
 
 
 
@@ -260,5 +297,19 @@ class MittFiskeViewModel(
         val factor = 1 / precision
         return (lat * factor).toInt() to (lon * factor).toInt()
     }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val client = HttpClient()
+                val dataSource = MittFiskeDataSource(client)
+                val repo = MittFiskeRepository(dataSource)
+                MittFiskeViewModel(repo)
+            }
+        }
+    }
+
+
+
 
 }

@@ -94,9 +94,11 @@ import android.graphics.Color as AndroidColor
 @OptIn(FlowPreview::class)
 @Composable
 fun MapScreen(
-    viewModel: MapViewModel = viewModel(factory = MapViewModel.Factory),
-    fishSpeciesViewModel: FishSpeciesViewModel
-) {
+    viewModel: MapViewModel,
+    fishSpeciesViewModel: FishSpeciesViewModel,
+    mittFiskeViewModel: MittFiskeViewModel
+)
+ {
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
@@ -156,51 +158,43 @@ fun MapScreen(
 
 
 
-    val mittFiskeViewModel: MittFiskeViewModel = viewModel(
-        factory = MittFiskeViewModelFactory(
-            MittFiskeRepository(
-                MittFiskeDataSource(HttpClient())
-            )
-        )
-    )
+
     val mittFiskeState by mittFiskeViewModel.uiState.collectAsState()
-    LaunchedEffect(Unit) {
-        val polygonWKT = "POLYGON((4.0 71.5, 4.0 57.9, 31.5 57.9, 31.5 71.5, 4.0 71.5))"
-        val pointWKT = "POINT(15.0 64.0)"
 
-        mittFiskeViewModel.preloadBitmaps(context)
+     LaunchedEffect(mittFiskeState.isLoading) {
+         if (!mittFiskeState.isLoading && mittFiskeState.locations.any { it.rating != null }) {
 
-        mittFiskeViewModel.loadLocations(
-            polygonWKT = polygonWKT,
-            pointWKT = pointWKT,
-            weatherViewModel = weatherViewModel,
-            predictionViewModel = predictionViewModel,
-            selectedSpecies = "Ørret", // <<– viktig
-            onDone = {
-                mapViewRef.value?.let { mapView ->
-                    val bounds = mapView.getMapboxMap().coordinateBoundsForCamera(
-                        CameraOptions.Builder()
-                            .center(mapViewportState.cameraState?.center)
-                            .zoom(mapViewportState.cameraState?.zoom)
-                            .build()
-                    )
-                    currentBounds.value = bounds
+             mittFiskeViewModel.preloadBitmaps(context)
 
-                    val visible = mittFiskeViewModel.filterLocationsInBounds(
-                        mittFiskeState.locations,
-                        bounds
-                    )
+             delay(300)
 
-                    viewModel.updateClusters(visible, zoomLevel)
-                    viewModel.triggerDraw()
-                }
-            }
-        )
-    }
+             mapViewRef.value?.let { mapView ->
+                 val camera = mapViewportState.cameraState ?: return@let
+                 val bounds = mapView.getMapboxMap().coordinateBoundsForCamera(
+                     CameraOptions.Builder()
+                         .center(camera.center)
+                         .zoom(camera.zoom)
+                         .build()
+                 )
+                 currentBounds.value = bounds
+
+                 val visible = mittFiskeViewModel.filterLocationsInBounds(
+                     mittFiskeState.locations,
+                     bounds
+                 )
+
+                 viewModel.updateClusters(visible, camera.zoom)
+                 viewModel.triggerDraw() // <- denne må kalles manuelt første gang
+             }
+         }
+     }
 
 
 
-    LaunchedEffect(mapCenter, zoomLevel) {
+
+
+
+     LaunchedEffect(mapCenter, zoomLevel) {
         val cameraOptions = CameraOptions.Builder()
             .center(mapCenter)
             .zoom(zoomLevel)

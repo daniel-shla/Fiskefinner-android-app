@@ -148,7 +148,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         _speciesStates.value = currentStates
     }
 
-/*
+
     suspend fun rateOneSpecies(
         species: FishSpeciesData,
         weatherViewModel: WeatherViewModel
@@ -196,8 +196,8 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         return species.copy(ratedPolygons = rated)
     }
 
-*/
 
+/*
     suspend fun rateOneSpecies(
         species: FishSpeciesData,
         weatherViewModel: WeatherViewModel
@@ -223,7 +223,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
 
         return species.copy(ratedPolygons = rated)
     }
-
+*/
 
 
 
