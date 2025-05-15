@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 
 @Composable
 fun OnboardingScreen(
@@ -53,210 +55,123 @@ fun OnboardingScreen(
     weatherViewModel: WeatherViewModel,
     predictionViewModel: PredictionViewModel,
     onComplete: () -> Unit
-)
- {
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         val polygonWKT = "POLYGON((4.0 71.5, 4.0 57.9, 31.5 57.9, 31.5 71.5, 4.0 71.5))"
         val pointWKT = "POINT(15.0 64.0)"
         viewModel.preloadFishLocations(
-            mittFiskeViewModel = mittFiskeViewModel,
-            weatherViewModel = weatherViewModel,
-            predictionViewModel = predictionViewModel,
-            polygonWKT = polygonWKT,
-            pointWKT = pointWKT,
-            species = "ørret",
-            onDone = {}
+            mittFiskeViewModel, weatherViewModel, predictionViewModel,
+            polygonWKT, pointWKT, "ørret", onDone = {}
         )
     }
 
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = "Velkommen til FiskeFinner!",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold
-        )
-        
-        Text(
-            text = "Fortell oss om dine foretrukne fiskeforhold, så kan vi gi deg bedre anbefalinger.",
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "Din profil",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                
-                OutlinedTextField(
-                    value = uiState.name,
-                    onValueChange = { viewModel.updateName(it) },
-                    label = { Text("Navn") },
-                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Navn") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            }
-        }
-        
-        PreferenceCard(
-            title = "Værforhold",
-            description = "Hvor godt liker du å fiske under følgende værforhold?"
-        ) {
-            PreferenceSlider(
-                icon = Icons.Default.Thermostat,
-                label = "Temperatur",
-                value = uiState.temperaturePreference,
-                lowValueLabel = "Kaldere",
-                highValueLabel = "Varmere",
-                onValueChange = { viewModel.updateTemperaturePreference(it) }
-            )
-            
-            PreferenceSlider(
-                icon = Icons.Default.Air,
-                label = "Vind",
-                value = uiState.windPreference,
-                lowValueLabel = "Vindstille",
-                highValueLabel = "Mye vind",
-                onValueChange = { viewModel.updateWindPreference(it) }
-            )
-            
-            PreferenceSlider(
-                icon = Icons.Default.Umbrella,
-                label = "Nedbør",
-                value = uiState.rainPreference,
-                lowValueLabel = "Tørt",
-                highValueLabel = "Regn",
-                onValueChange = { viewModel.updateRainPreference(it) }
-            )
-            
-            // Pressure preference
-            PreferenceSlider(
-                icon = Icons.Default.CompassCalibration,
-                label = "Lufttrykk",
-                value = uiState.pressurePreference,
-                lowValueLabel = "Lavt",
-                highValueLabel = "Høyt",
-                onValueChange = { viewModel.updatePressurePreference(it) }
-            )
-            
-            PreferenceSlider(
-                icon = Icons.Default.CloudQueue,
-                label = "Skydekke",
-                value = uiState.cloudPreference,
-                lowValueLabel = "Klart",
-                highValueLabel = "Overskyet",
-                onValueChange = { viewModel.updateCloudPreference(it) }
-            )
-        }
-        
-        PreferenceCard(
-            title = "Tid på døgnet",
-            description = "Når foretrekker du å fiske?"
-        ) {
-            PreferenceSlider(
-                icon = Icons.Default.WbSunny,
-                label = "Morgen",
-                value = uiState.morningPreference,
-                lowValueLabel = "Ikke foretrukket",
-                highValueLabel = "Veldig foretrukket",
-                onValueChange = { viewModel.updateMorningPreference(it) }
-            )
-            
-            PreferenceSlider(
-                icon = Icons.Default.BrightnessHigh,
-                label = "Midt på dagen",
-                value = uiState.afternoonPreference,
-                lowValueLabel = "Ikke foretrukket",
-                highValueLabel = "Veldig foretrukket",
-                onValueChange = { viewModel.updateAfternoonPreference(it) }
-            )
-            
-            PreferenceSlider(
-                icon = Icons.Default.WbTwilight,
-                label = "Kveld",
-                value = uiState.eveningPreference,
-                lowValueLabel = "Ikke foretrukket",
-                highValueLabel = "Veldig foretrukket",
-                onValueChange = { viewModel.updateEveningPreference(it) }
-            )
-        }
-        
-        PreferenceCard(
-            title = "Årstider",
-            description = "Hvilke årstider foretrekker du å fiske i?"
-        ) {
-            PreferenceSlider(
-                icon = Icons.Default.Grass,
-                label = "Vår",
-                value = uiState.springPreference,
-                lowValueLabel = "Ikke foretrukket",
-                highValueLabel = "Veldig foretrukket",
-                onValueChange = { viewModel.updateSpringPreference(it) }
-            )
-            
-            PreferenceSlider(
-                icon = Icons.Default.LightMode,
-                label = "Sommer",
-                value = uiState.summerPreference,
-                lowValueLabel = "Ikke foretrukket",
-                highValueLabel = "Veldig foretrukket",
-                onValueChange = { viewModel.updateSummerPreference(it) }
-            )
-            
-            PreferenceSlider(
-                icon = Icons.Default.BrightnessLow,
-                label = "Høst",
-                value = uiState.fallPreference,
-                lowValueLabel = "Ikke foretrukket",
-                highValueLabel = "Veldig foretrukket",
-                onValueChange = { viewModel.updateFallPreference(it) }
-            )
-            
-            PreferenceSlider(
-                icon = Icons.Default.AcUnit,
-                label = "Vinter",
-                value = uiState.winterPreference,
-                lowValueLabel = "Ikke foretrukket",
-                highValueLabel = "Veldig foretrukket",
-                onValueChange = { viewModel.updateWinterPreference(it) }
-            )
-        }
-        
-        Button(
-            onClick = {
-                viewModel.savePreferences()
-                onComplete()
-            },
+        Column(
             modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .padding(vertical = 16.dp),
-            enabled = uiState.name.isNotBlank()
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Start å fiske!", modifier = Modifier.padding(vertical = 8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Velkommen til FiskeFinner!",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+
+                )
+            Text(
+                text = "Fortell oss om dine foretrukne fiskeforhold, så kan vi gi deg bedre anbefalinger.",
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(horizontal = 8.dp),
+                color = MaterialTheme.colorScheme.onBackground
+
+            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text("Din profil", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    OutlinedTextField(
+                        value = uiState.name,
+                        onValueChange = { viewModel.updateName(it) },
+                        label = { Text("Navn") },
+                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = "Navn") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            }
+
+            PreferenceCard("Værforhold", "Hvor godt liker du å fiske under følgende værforhold?") {
+                PreferenceSlider(Icons.Default.Thermostat, "Temperatur", uiState.temperaturePreference, "Kaldere", "Varmere") {
+                    viewModel.updateTemperaturePreference(it)
+                }
+                PreferenceSlider(Icons.Default.Air, "Vind", uiState.windPreference, "Vindstille", "Mye vind") {
+                    viewModel.updateWindPreference(it)
+                }
+                PreferenceSlider(Icons.Default.Umbrella, "Nedbør", uiState.rainPreference, "Tørt", "Regn") {
+                    viewModel.updateRainPreference(it)
+                }
+                PreferenceSlider(Icons.Default.CompassCalibration, "Lufttrykk", uiState.pressurePreference, "Lavt", "Høyt") {
+                    viewModel.updatePressurePreference(it)
+                }
+                PreferenceSlider(Icons.Default.CloudQueue, "Skydekke", uiState.cloudPreference, "Klart", "Overskyet") {
+                    viewModel.updateCloudPreference(it)
+                }
+            }
+
+            PreferenceCard("Tid på døgnet", "Når foretrekker du å fiske?") {
+                PreferenceSlider(Icons.Default.WbSunny, "Morgen", uiState.morningPreference, "Ikke foretrukket", "Veldig foretrukket") {
+                    viewModel.updateMorningPreference(it)
+                }
+                PreferenceSlider(Icons.Default.BrightnessHigh, "Midt på dagen", uiState.afternoonPreference, "Ikke foretrukket", "Veldig foretrukket") {
+                    viewModel.updateAfternoonPreference(it)
+                }
+                PreferenceSlider(Icons.Default.WbTwilight, "Kveld", uiState.eveningPreference, "Ikke foretrukket", "Veldig foretrukket") {
+                    viewModel.updateEveningPreference(it)
+                }
+            }
+
+            PreferenceCard("Årstider", "Hvilke årstider foretrekker du å fiske i?") {
+                PreferenceSlider(Icons.Default.Grass, "Vår", uiState.springPreference, "Ikke foretrukket", "Veldig foretrukket") {
+                    viewModel.updateSpringPreference(it)
+                }
+                PreferenceSlider(Icons.Default.LightMode, "Sommer", uiState.summerPreference, "Ikke foretrukket", "Veldig foretrukket") {
+                    viewModel.updateSummerPreference(it)
+                }
+                PreferenceSlider(Icons.Default.BrightnessLow, "Høst", uiState.fallPreference, "Ikke foretrukket", "Veldig foretrukket") {
+                    viewModel.updateFallPreference(it)
+                }
+                PreferenceSlider(Icons.Default.AcUnit, "Vinter", uiState.winterPreference, "Ikke foretrukket", "Veldig foretrukket") {
+                    viewModel.updateWinterPreference(it)
+                }
+            }
+
+            Button(
+                onClick = {
+                    viewModel.savePreferences()
+                    onComplete()
+                },
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .padding(vertical = 16.dp),
+                enabled = uiState.name.isNotBlank()
+            ) {
+                Text("Start å fiske!", modifier = Modifier.padding(vertical = 8.dp))
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
         }
-        
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -274,19 +189,9 @@ fun PreferenceCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            
+            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(description, style = MaterialTheme.typography.bodySmall)
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            
             content()
         }
     }
@@ -306,26 +211,14 @@ fun PreferenceSlider(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                modifier = Modifier.size(24.dp)
-            )
-            
+            Icon(imageVector = icon, contentDescription = label, modifier = Modifier.size(24.dp))
             Text(
                 text = label,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(start = 8.dp)
             )
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            Text(
-                text = "$value/5",
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
-        
+
         Slider(
             value = value.toFloat(),
             onValueChange = { onValueChange(it.toInt()) },
@@ -333,20 +226,14 @@ fun PreferenceSlider(
             steps = 3,
             modifier = Modifier.fillMaxWidth()
         )
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = lowValueLabel,
-                style = MaterialTheme.typography.bodySmall
-            )
-            
-            Text(
-                text = highValueLabel,
-                style = MaterialTheme.typography.bodySmall
-            )
+            Text(lowValueLabel, style = MaterialTheme.typography.bodySmall)
+            Text(highValueLabel, style = MaterialTheme.typography.bodySmall)
         }
     }
-} 
+}
+
