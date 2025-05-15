@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.danishah.figmatesting.screens.map.components
+package no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
@@ -23,6 +24,9 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.Waves
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.outlined.WbSunny
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -43,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 @Composable
-fun MapHelpDialog(
+fun DashboardHelpDialog(
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -55,26 +59,24 @@ fun MapHelpDialog(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.background
             ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 8.dp
-            )
+            elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Column(
                 modifier = Modifier
                     .padding(20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                // Topptekst og lukkeknapp
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Karthjelp",
+                        text = "Dashbord-hjelp",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
-                    
                     IconButton(
                         onClick = onDismiss,
                         modifier = Modifier.size(40.dp)
@@ -82,103 +84,79 @@ fun MapHelpDialog(
                         Icon(Icons.Default.Close, contentDescription = "Lukk")
                     }
                 }
-                
+
                 Text(
-                    text = "Finn de beste fiskeplassene med FiskeFinner",
+                    text = "Her finner du en oversikt over dagens vær, og kan planlegge en fisketur.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
+
                 Spacer(modifier = Modifier.height(24.dp))
-                
+
                 HelpSection(
-                    icon = Icons.Default.MyLocation,
-                    title = "Navigering",
+                    icon = Icons.Default.WbSunny,
+                    title = "Dagens vær",
                     iconTint = MaterialTheme.colorScheme.primary,
                     items = listOf(
-                        "Sveip med fingeren for å bevege kartet",
-                        "Knip fingrene for å zoome inn og ut",
-                        "Bruk + og - knappene for presis zooming",
-                        "Trykk på lokasjonsknappen for å finne din posisjon"
+                        "Her får du en oversikt over hvordan været er nå."
                     )
                 )
-                
+
                 HelpSection(
-                    icon = Icons.Default.LocationOn,
-                    title = "Fiskeplasser",
-                    iconTint = Color(0xFF2196F3),
-                    items = listOf(
-                        "Blå markører viser enkeltplasser for fiske",
-                        "Markører med tall viser områder med flere fiskeplasser",
-                        "Trykk på markør for å se detaljer om fiskeplassen",
-                        "Zoom inn for å se flere detaljer i områder med mange markører"
-                    )
-                )
-                
-                HelpSection(
-                    icon = Icons.Default.Waves,
-                    title = "Fiskearter og AI-modell",
-                    iconTint = Color(0xFF4CAF50),
-                    items = listOf(
-                        "Fargede områder viser hvor det er sannsynlig å finne fiskearter",
-                        "Forskjellige farger representerer ulike fiskearter",
-                        "Mørkere farge betyr høyere sannsynlighet for å finne fisken",
-                        "Fra FiskeArter-fanen kan du velge hvilke arter du vil se"
-                    )
-                )
-                
-                HelpSection(
-                    icon = Icons.Default.Star,
-                    title = "Vurderinger",
-                    iconTint = Color(0xFFFFC107),
-                    items = listOf(
-                        "Stjerner viser AI-modellens vurdering av fiskeplassen",
-                        "Vurderingen kombinerer værforhold, årstid, tid på døgnet og fiskepreferanser",
-                        "Høyere antall stjerner betyr bedre fiskeforhold"
-                    )
-                )
-                
-                HelpSection(
-                    icon = Icons.Default.Search,
-                    title = "Søk",
+                    icon = Icons.Default.CalendarToday,
+                    title = "Fiskeplanlegger",
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     items = listOf(
-                        "Bruk søkefeltet øverst for å finne steder",
-                        "Skriv inn stedsnavnet og trykk søk",
-                        "Velg et forslag fra listen som dukker opp"
+                        "Velg hvilken type fisk du vil fiske.",
+                        "Velg et tidspunkt i løpet av de kommende 7 dager for når du vil fiske.",
+                        "Velg på kartet hvor du ønsker å fiske.",
+                        "Velg hvor langt unna valgt sted du ønsker å få anbefalte fiskeplasser."
                     )
                 )
-                
+
+                HelpSection(
+                    icon = Icons.Default.Star,
+                    title = "Fiskeplass-forslag",
+                    iconTint = Color(0xFFFFC107),
+                    items = listOf(
+                        "Når du har planlagt en fisketur får du anbefalinger om fiskeplasser som passer kriteriene dine.",
+                        "Du får foreslått de nærmeste fiskeplassene, og de beste fiskeplassene innen avstanden du har valgt."
+                    )
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Text(
-                    text = "God fisketur! :)",
+                    text = "Lykke til på fisketuren!",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Vi tar forbehold om at anbefalingene appen gir om fiskeplasser ikke er perfekte. " +
+                            "Anbefalingene er basert på værmeldingen for lokasjonen og tidspunktet du velger, " +
+                            "og vil være mer usikker jo lenger frem i tid du ønsker å fiske.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
-                // Bottom close button
-                androidx.compose.material3.Button(
+
+                Button(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = "Lukk")
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Lukk")
                 }
             }
         }
@@ -211,16 +189,16 @@ private fun HelpSection(
                     modifier = Modifier.size(24.dp)
                 )
             }
-            
+
             Spacer(modifier = Modifier.width(12.dp))
-            
+
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
         }
-        
+
         items.forEach { item ->
             Row(
                 verticalAlignment = Alignment.Top,
@@ -237,8 +215,8 @@ private fun HelpSection(
                 )
             }
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
     }
-} 
+}
