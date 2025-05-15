@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
 
@@ -25,7 +24,7 @@ fun ClusterOverviewCard(
     Card(
         modifier = modifier
             .wrapContentWidth()
-            .widthIn(min = 200.dp, max = 340.dp)   // ikke bredere enn 340 dp
+            .widthIn(min = 200.dp, max = 340.dp)   // no wider than 340 dp
             .shadow(6.dp, RoundedCornerShape(16.dp)),
         shape  = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
@@ -35,19 +34,19 @@ fun ClusterOverviewCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            /* ---------- Tittel + X ---------- */
+            /* ---------- Title + X ---------- */
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Spacer(Modifier.size(48.dp))            // «dødvekt» = bredde til ikonknapp
+                Spacer(Modifier.size(48.dp)) // "dead weight" = width of the icon button
 
                 Text(
                     text      = "${cluster.spots.size} fiskeplasser i dette området",
                     style     = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     maxLines  = 2,
-                    modifier  = Modifier.weight(1f)     // ← skyver teksten til eksakt sentrum
+                    modifier  = Modifier.weight(1f) // push the text to center
                 )
 
                 IconButton(onClick = onClose) {
@@ -58,7 +57,7 @@ fun ClusterOverviewCard(
 
             Spacer(Modifier.height(8.dp))
 
-            /* ---------- Inntil tre fiskeplasser ---------- */
+            /* ---------- Up to three fishing spots ---------- */
             cluster.spots.take(3).forEach { spot ->
                 val loc = spot.locs.firstOrNull()
 
@@ -66,22 +65,22 @@ fun ClusterOverviewCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.Top          // ← topp-anker
+                    verticalAlignment = Alignment.Top          // top anchor
                 ) {
-                    /* -------- Venstre kolonne -------- */
+                    /* -------- Left column -------- */
                     Column(
                         modifier = Modifier
-                            .weight(1f)                       // tar all bredde
-                            .padding(end = 8.dp)              // litt luft mot rating
+                            .weight(1f)                       // take up the whole width
+                            .padding(end = 8.dp)              // some space towards rating
                     ) {
-                        /* Navn */
+                        /* name */
                         Text(
                             text       = spot.name,
                             style      = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold
                         )
 
-                        /* Beskrivelse (kan bruke flere linjer) */
+                        /* description (can use multiple lines) */
                         loc?.de?.let {
                             Text(
                                 text      = it,
@@ -90,7 +89,7 @@ fun ClusterOverviewCard(
                             )
                         }
 
-                        /* Features (viser alle – brytes automatisk) */
+                        /* Features (shows all - breaks automatically) */
                         loc?.fe?.takeIf { it.isNotEmpty() }?.let { feats ->
                             Text(
                                 text      = feats.joinToString(" • "),
@@ -100,15 +99,15 @@ fun ClusterOverviewCard(
                         }
                     }
 
-                    /* -------- Høyre kolonne (rating) -------- */
+                    /* -------- right column (rating) -------- */
                     Text(
                         text = "⭐ ${spot.rating ?: "?"}",
-                        modifier = Modifier.align(Alignment.Top) // optisk topp-justert
+                        modifier = Modifier.align(Alignment.Top) // optically top-adjusted
                     )
                 }
             }
 
-            /* ---------- «…og X til» ---------- */
+            /* ---------- «…and X more» ---------- */
             if (cluster.spots.size > 3) {
                 Text(
                     "…og ${cluster.spots.size - 3} til (zoom inn for mer)",
@@ -117,11 +116,11 @@ fun ClusterOverviewCard(
                 )
             }
 
-            /* ---------- Gjennomsnittlig rating ---------- */
+            /* ---------- average rating ---------- */
             cluster.averageRating?.let {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Gjennomsnittlig AI-vurdering: ${"%.1f".format(it)} / 4",
+                    "Gjennomsnittlig KI-vurdering: ${"%.1f".format(it)} / 4",
                     style      = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium
                 )

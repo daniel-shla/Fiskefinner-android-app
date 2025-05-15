@@ -174,7 +174,7 @@ fun SearchResultsCard(
         }
 
         else -> {
-            // Fallback for helt tomt søk
+            // Fallback for empty search
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
