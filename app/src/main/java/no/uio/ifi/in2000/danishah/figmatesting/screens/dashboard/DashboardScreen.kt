@@ -20,12 +20,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,6 +69,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.WeatherUiState
 import no.uio.ifi.in2000.danishah.figmatesting.ml.FishPredictor
 import no.uio.ifi.in2000.danishah.figmatesting.ml.SpeciesMapper
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.cards.WeatherCard
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.components.DashboardHelpDialog
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -78,37 +85,58 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
+    val showHelpDialog = remember { mutableStateOf(false) }
 
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(16.dp)
+        ) {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(16.dp)
-    ) {
-
-        when (uiState) {
-            is WeatherUiState.Loading -> {
-                Text("Laster værdata...")
-            }
-            is WeatherUiState.Error -> {
-                val error = (uiState as WeatherUiState.Error).message
-                Text("Feil: $error")
-            }
-            is WeatherUiState.Success -> {
-                val weather = viewModel.getCurrentWeather()
-                if (weather.isNotEmpty()) {
-                    WeatherCard(weather.first())
-                } else {
-                    Text("Ingen værdata tilgjengelig.")
+            when (uiState) {
+                is WeatherUiState.Loading -> {
+                    Text("Laster værdata...")
                 }
+
+                is WeatherUiState.Error -> {
+                    val error = (uiState as WeatherUiState.Error).message
+                    Text("Feil: $error")
+                }
+
+                is WeatherUiState.Success -> {
+                    val weather = viewModel.getCurrentWeather()
+                    if (weather.isNotEmpty()) {
+                        WeatherCard(weather.first())
+                    } else {
+                        Text("Ingen værdata tilgjengelig.")
+                    }
+                }
+
+                else -> {}
             }
-            else -> {}
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            FishTripPlannerSection(navController = navController)
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        FishTripPlannerSection(navController = navController)
+        // Help button in bottom left
+        SmallFloatingActionButton(
+            onClick = { showHelpDialog.value = true },
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp)
+                .size(40.dp)
+        ) {
+            Icon(Icons.Default.QuestionMark, contentDescription = "Hjelp")
+        }
+    }
+    // Show help dialog when needed
+    if (showHelpDialog.value) {
+        DashboardHelpDialog(onDismiss = { showHelpDialog.value = false })
     }
 }
 val LocalDateTimeSaver = Saver<LocalDateTime?, String>(
@@ -459,7 +487,7 @@ fun FishTripPlannerSection(navController: NavController) {
         }
     }
 
-    }
+}
 @Composable
 fun PlannerInputBox(
     iconRes: Int,
