@@ -37,7 +37,7 @@ class MapboxApiClient {
             // Encode query for URL
             val encodedQuery = URLEncoder.encode(query, "UTF-8")
             
-            // Build the URL for searching (må se slik ut, no changy changy)
+            // Build the URL for searching (DO NOT CHANGE)
             val url = "https://api.mapbox.com/search/searchbox/v1/suggest?" +
                     "q=$encodedQuery" +
                     "&country=NO" +

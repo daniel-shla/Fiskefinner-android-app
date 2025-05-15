@@ -1,6 +1,5 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
 
-import com.google.gson.annotations.SerializedName
 
 /**
  * Data classes for parsing GeoJSON format fish species data

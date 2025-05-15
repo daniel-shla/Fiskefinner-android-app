@@ -33,7 +33,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             _userProfile.value = UserProfile(
                 name = _userPreferences.value.name.ifBlank { "Anonym fisker" },
-                email = "exempel@fiskefinne.no",
+                email = "example@fiskefinner.no",
                 fishingLevel = "Ivrig fisker"
             )
         }
@@ -48,7 +48,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     name = preferences.name.ifBlank { "Anonym fisker" }
                 ) ?: UserProfile(
                     name = preferences.name.ifBlank { "Anonym fisker" },
-                    email = "exempel@fiskefinner.no",
+                    email = "example@fiskefinner.no",
                     fishingLevel = "Ivrig fisker"
                 )
             }

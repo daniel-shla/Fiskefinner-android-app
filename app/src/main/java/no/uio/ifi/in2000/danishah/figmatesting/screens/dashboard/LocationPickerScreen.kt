@@ -109,7 +109,8 @@ fun LocationPickerScreen(navController: NavController) {
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
 
-                        mapboxMap.loadStyleUri(Style.MAPBOX_STREETS) {
+                        //mapboxMap.loadStyleUri(Style.MAPBOX_STREETS) // deprecated!
+                        mapboxMap.loadStyle(Style.MAPBOX_STREETS) {
                             val annotations = annotations
                             circleAnnotationManager = annotations.createCircleAnnotationManager()
 
@@ -125,7 +126,8 @@ fun LocationPickerScreen(navController: NavController) {
                                 true
                             }
 
-                            getMapboxMap().setCamera(
+                            // getMapboxMap().setCamera // deprecated!
+                            mapboxMap.setCamera (
                                 CameraOptions.Builder()
                                     .center(Point.fromLngLat(10.75, 59.91))
                                     .zoom(5.0)

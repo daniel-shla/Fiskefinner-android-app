@@ -15,25 +15,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.WaterDrop
-import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -66,7 +57,7 @@ fun DashboardHelpDialog(
                     .padding(20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Topptekst og lukkeknapp
+                // top text and closing button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -98,7 +89,8 @@ fun DashboardHelpDialog(
                     title = "Dagens vær",
                     iconTint = MaterialTheme.colorScheme.primary,
                     items = listOf(
-                        "Her får du en oversikt over hvordan været er nå."
+                        "Her får du en oversikt over hvordan været er nå.",
+                        "Hvis du ikke har tillatt å dele posisjon, vil været for Oslo vises."
                     )
                 )
 
@@ -163,6 +155,8 @@ fun DashboardHelpDialog(
     }
 }
 
+// could refactor this and from MapHelpDialog to be in a separate "components"-package
+// fix if we have time to spare
 @Composable
 private fun HelpSection(
     icon: ImageVector,

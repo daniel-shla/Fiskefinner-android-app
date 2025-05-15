@@ -2,6 +2,8 @@ package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
 
 import kotlinx.serialization.Serializable
 
+// IT LOOKS LIKE THERE ARE ERRORS/WARNINGS HERE BUT DO NOT TOUCH, APP REQUIRES THIS STATE
+
 @Serializable
 data class WeatherResponse(val properties: Properties)
 
@@ -17,15 +19,19 @@ data class TimeSeries(
 @Serializable
 data class Data(
     val instant: Instant,
-    val next_1_hours: NextHourData? = null // for ML
+    val next_1_hours: NextHourData? = null,
+    val next_6_hours: Next6HourData? = null
 )
 
 @Serializable
 data class Instant(val details: Details)
 
-// for treningsdata til ML (nedbør finnes ikke i Instant! trengs for modellen
+// needed for precipitation
 @Serializable
 data class NextHourData(val details: NextHourDetails)
+
+@Serializable
+data class Next6HourData(val details: Next6HourDetails)
 
 @Serializable
 data class Details(
@@ -37,7 +43,12 @@ data class Details(
 
 @Serializable
 data class NextHourDetails(
-    val precipitation_amount: Double // nedbørsmengde i mm til ML
+    val precipitation_amount: Double
+)
+
+@Serializable
+data class Next6HourDetails(
+    val precipitation_amount: Double
 )
 
 sealed class WeatherUiState {

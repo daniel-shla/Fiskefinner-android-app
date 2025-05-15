@@ -6,13 +6,13 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.apiclient.MapboxApiClient
 import java.util.UUID
 
 
-open class LocationDataSource(private val api: MapboxApiClient = MapboxApiClient()) {
+class LocationDataSource(private val api: MapboxApiClient = MapboxApiClient()) {
     
-    // Session token for Mapbox Search API (Must be randomly generated each time, i think??)
+    // Session token for Mapbox Search API (Must be randomly generated each time, I think??)
     private var sessionToken = UUID.randomUUID().toString()
     
-    // Reset session token - called when a search session is completed
-    open fun resetSessionToken() {
+    // Reset session token: called when a search session is completed
+    fun resetSessionToken() {
         sessionToken = UUID.randomUUID().toString()
     }
 
@@ -32,8 +32,7 @@ open class LocationDataSource(private val api: MapboxApiClient = MapboxApiClient
     
     companion object {
         val NORWAY_CENTER = Point.fromLngLat(10.7522, 61.5)
-        val OSLO_LOCATION = Point.fromLngLat(10.6458, 59.8946)
-        
+
         // Default zooms
         const val COUNTRY_ZOOM = 4.0
         const val DETAIL_ZOOM = 12.0

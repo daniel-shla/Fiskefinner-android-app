@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.BrightnessHigh
@@ -270,7 +271,7 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
-                imageVector = Icons.Default.ExitToApp,
+                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
@@ -312,9 +313,9 @@ fun PreferenceProgress(
         }
         
         Spacer(modifier = Modifier.height(4.dp))
-        
+
         LinearProgressIndicator(
-            progress = value / 5f,
+            progress = { value/5f },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)

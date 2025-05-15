@@ -50,11 +50,11 @@ class DashboardViewModel : ViewModel() {
     val uiState: StateFlow<WeatherUiState> = _uiState
 
     init {
-        loadWeatherData(59.9139, 10.7522)
+        loadWeatherData(59.9139, 10.7522) // Oslo until user allows access to their location
 
         viewModelScope.launch {
             UserLocation.current.collect { point ->
-                if (point != null) {               // ny bruker-posisjon
+                if (point != null) {               // new user-location
                     _usingUserLocation.value = true
                     loadWeatherData(point.latitude(), point.longitude())
                 }
@@ -69,7 +69,7 @@ class DashboardViewModel : ViewModel() {
                 val data = repository.getWeather(lat, lon)
                 _uiState.value = WeatherUiState.Success(data)
             } catch (e: Exception) {
-                _uiState.value = WeatherUiState.Error("Feil ved henting av værdata: ${e.message}")
+                _uiState.value = WeatherUiState.Error("Error getting weather data: ${e.message}")
             }
         }
     }
@@ -87,9 +87,9 @@ class DashboardViewModel : ViewModel() {
 
         return listOf(timeseries.first())
     }
-    suspend fun hentFiskeplasserForArt(
-        brukerLat: Double,
-        brukerLon: Double,
+    suspend fun getFishSpotsForSpecies(
+        userLat: Double,
+        userLon: Double,
         selectedSpecies: String,
         polygonWKT: String,
         pointWKT: String
@@ -101,7 +101,7 @@ class DashboardViewModel : ViewModel() {
         val relevantLocations = allLocations.filter { loc ->
             val allFe = loc.locs.flatMap { it.fe ?: emptyList() }
             val fish = extractSupportedFish(allFe)
-            Log.d("FISKEFILTER", "Plass: ${loc.name}, Arter: ${fish.joinToString()}, Match: ${normalizedSpecies in fish}")
+            Log.d("FISHFILTER", "Spot: ${loc.name}, Species: ${fish.joinToString()}, Match: ${normalizedSpecies in fish}")
             normalizedSpecies in fish
         }
 
@@ -109,7 +109,7 @@ class DashboardViewModel : ViewModel() {
         val withDistance = relevantLocations.map { loc ->
             val lat = loc.p.coordinates[1]
             val lon = loc.p.coordinates[0]
-            val dist = haversine(brukerLat, brukerLon, lat, lon)
+            val dist = haversine(userLat, userLon, lat, lon)
             loc to dist
         }
 
@@ -123,7 +123,7 @@ class DashboardViewModel : ViewModel() {
         )
         return fe
             ?.flatMap { entry ->
-                // Splitt på både komma og mellomrom, fjern tomme strenger
+                // split on both comma and space, remove empty strings
                 entry.split(",", " ", "\n", "\t")
                     .map { it.trim().lowercase() }
                     .filter { it.isNotBlank() && it in supported }
@@ -134,7 +134,7 @@ class DashboardViewModel : ViewModel() {
     }
 
     private fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val R = 6371 // jordradius i km
+        val R = 6371 // radius of Earth in kilometres
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)
         val a = sin(dLat / 2).pow(2.0) +
@@ -145,15 +145,15 @@ class DashboardViewModel : ViewModel() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun hentVaerFor(
+    suspend fun getWeatherFor(
         lat: Double,
         lon: Double,
-        tidspunkt: LocalDateTime,
+        pointOfTime: LocalDateTime,
         repository: WeatherRepository
     ): TimeSeries? {
         return try {
             val response = repository.getWeather(lat, lon)
-            val targetTime = tidspunkt.truncatedTo(java.time.temporal.ChronoUnit.HOURS)
+            val targetTime = pointOfTime.truncatedTo(java.time.temporal.ChronoUnit.HOURS)
 
             val match = response.properties.timeseries.minByOrNull { ts ->
                 val tsTime = OffsetDateTime.parse(ts.time).toLocalDateTime()
@@ -162,13 +162,13 @@ class DashboardViewModel : ViewModel() {
             }
 
             if (match != null) {
-                Log.d("VAER-HENTING", "Lat: $lat, Lon: $lon, Tid: $tidspunkt → Match: ${match.time}")
+                Log.d("GET WEATHER", "Lat: $lat, Lon: $lon, Time: $pointOfTime -> Match: ${match.time}")
             } else {
-                Log.d("VAER-HENTING", "Ingen værdata funnet for $lat,$lon på $tidspunkt")
+                Log.d("GET WEATHER", "No weather data found for $lat,$lon on $pointOfTime")
             }
             match
         } catch (e: Exception) {
-            Log.e("VAER-HENTING", "Feil ved henting av vær for $lat,$lon: ${e.message}")
+            Log.e("GET WEATHER", "Error getting weather for $lat,$lon: ${e.message}")
             null
         }
     }

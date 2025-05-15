@@ -23,7 +23,7 @@ fun LocationInfoCard(
     Card(
         modifier = modifier
             .wrapContentWidth()
-            .widthIn(min = 160.dp, max = 320.dp)      // kortet vokser aldri over 320 dp
+            .widthIn(min = 160.dp, max = 320.dp)      // the card will never grow over 320 dp
             .shadow(6.dp, RoundedCornerShape(16.dp)),
         shape  = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
@@ -33,21 +33,21 @@ fun LocationInfoCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            /* ---------- Tittel + X ---------- */
+            /* ---------- title + X ---------- */
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Spacer(Modifier.size(48.dp))           // «dødvekt» = like bredt som ikonknappen
+                Spacer(Modifier.size(48.dp))           // "dead weight" = width of the icon button
 
                 Text(
                     text      = location.name,
                     style     = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     maxLines  = 2,
-                    modifier  = Modifier.weight(1f)    // sørger for perfekt sentrering
+                    modifier  = Modifier.weight(1f)    // center
                 )
 
                 IconButton(onClick = onClose) {
@@ -67,13 +67,13 @@ fun LocationInfoCard(
                 )
                 Spacer(Modifier.width(4.dp))
                 Text(
-                    text  = "AI-vurdering",
+                    text  = "KI-vurdering",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            /* ---------- Beskrivelse (hvis finnes) ---------- */
+            /* ---------- description (if it exists) ---------- */
             location.locs.firstOrNull()?.de?.takeIf { it.isNotBlank() }?.let { desc ->
                 Spacer(Modifier.height(8.dp))
                 Text(
@@ -84,7 +84,7 @@ fun LocationInfoCard(
                 )
             }
 
-            /* ---------- Features som ren tekst ---------- */
+            /* ---------- Features as plain text ---------- */
             location.locs.firstOrNull()?.fe?.takeIf { it.isNotEmpty() }?.let { feats ->
                 Spacer(Modifier.height(4.dp))
                 Text(

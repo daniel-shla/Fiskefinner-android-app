@@ -51,14 +51,11 @@ class FishPredictor(context: Context) {
 
         val inputBuffer = createInputBuffer(normalized)
 
-        val output = Array(1) { FloatArray(4) } // 4 klasser
+        val output = Array(1) { FloatArray(4) } // 4 classes
         interpreter.run(inputBuffer, output)
 
         val probs = output[0]
         val predictedClass = probs.indices.maxByOrNull { probs[it] } ?: -1
-
-        //Log.d("AI_PREDICTION", "Probabilities: ${probs.joinToString()}")
-        //Log.d("AI_PREDICTION", "Predicted class: $predictedClass (Confidence: ${probs[predictedClass]})")
 
         return predictedClass
     }
