@@ -83,9 +83,10 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = viewModel(factory = DashboardViewModel.Factory),
     navController: NavController
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val scrollState = rememberScrollState()
-    val showHelpDialog = remember { mutableStateOf(false) }
+    val uiState             by viewModel.uiState.collectAsState()
+    val usingUserLocation   by viewModel.usingUserLocation.collectAsState()
+    val scrollState         = rememberScrollState()
+    val showHelpDialog      = remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -94,35 +95,31 @@ fun DashboardScreen(
                 .verticalScroll(scrollState)
                 .padding(16.dp)
         ) {
-
             when (uiState) {
                 is WeatherUiState.Loading -> {
                     Text("Laster værdata...")
                 }
-
                 is WeatherUiState.Error -> {
                     val error = (uiState as WeatherUiState.Error).message
                     Text("Feil: $error")
                 }
-
                 is WeatherUiState.Success -> {
                     val weather = viewModel.getCurrentWeather()
                     if (weather.isNotEmpty()) {
-                        WeatherCard(weather.first())
+                        val label = if (usingUserLocation) "Din posisjon" else "Oslo"
+                        WeatherCard(weather.first(), label)
                     } else {
                         Text("Ingen værdata tilgjengelig.")
                     }
                 }
-
-                else -> {}
+                else -> { /* ingenting */ }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
             FishTripPlannerSection(navController = navController)
         }
 
-        // Help button in bottom left
+        // Hjelpe‐knapp nederst til venstre
         SmallFloatingActionButton(
             onClick = { showHelpDialog.value = true },
             shape = CircleShape,
@@ -134,11 +131,12 @@ fun DashboardScreen(
             Icon(Icons.Default.QuestionMark, contentDescription = "Hjelp")
         }
     }
-    // Show help dialog when needed
+
     if (showHelpDialog.value) {
         DashboardHelpDialog(onDismiss = { showHelpDialog.value = false })
     }
 }
+
 val LocalDateTimeSaver = Saver<LocalDateTime?, String>(
     save = { it?.toString() ?: "" },
     restore = { if (it.isNotEmpty()) LocalDateTime.parse(it) else null }

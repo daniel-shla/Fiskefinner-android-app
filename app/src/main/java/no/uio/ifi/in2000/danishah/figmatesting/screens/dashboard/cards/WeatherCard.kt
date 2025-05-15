@@ -31,7 +31,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TimeSeries
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun WeatherCard(weatherData: TimeSeries?) {
+fun WeatherCard(weatherData: TimeSeries?, locationLabel: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -62,7 +62,7 @@ fun WeatherCard(weatherData: TimeSeries?) {
                     Spacer(modifier = Modifier.width(4.dp))
 
                     Text(
-                        text = "Oslo", //Hardkodet
+                        text = locationLabel,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
