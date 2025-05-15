@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
@@ -23,6 +24,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.Waves
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -83,7 +86,7 @@ fun DashboardHelpDialog(
                 }
 
                 Text(
-                    text = "Her finner du en oversikt over dagens fiskeforhold, tips og varsler.",
+                    text = "Her finner du en oversikt over dagens vær, og kan planlegge en fisketur.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -91,32 +94,33 @@ fun DashboardHelpDialog(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 HelpSection(
-                    icon = Icons.Default.AcUnit,
-                    title = "Vær og forhold",
+                    icon = Icons.Default.WbSunny,
+                    title = "Dagens vær",
                     iconTint = MaterialTheme.colorScheme.primary,
                     items = listOf(
-                        "Se temperatur, vind og vanntemperatur",
-                        "Farger indikerer fiskeforhold: grønt = bra, rødt = dårlig"
+                        "Her får du en oversikt over hvordan været er nå."
                     )
                 )
 
                 HelpSection(
-                    icon = Icons.Default.WaterDrop,
-                    title = "Tips og anbefalinger",
+                    icon = Icons.Default.CalendarToday,
+                    title = "Fiskeplanlegger",
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     items = listOf(
-                        "Foreslåtte steder og tider å fiske basert på AI-modell",
-                        "Værmelding tas med i vurderingene"
+                        "Velg hvilken type fisk du vil fiske.",
+                        "Velg et tidspunkt i løpet av de kommende 7 dager for når du vil fiske.",
+                        "Velg på kartet hvor du ønsker å fiske.",
+                        "Velg hvor langt unna valgt sted du ønsker å få anbefalte fiskeplasser."
                     )
                 )
 
                 HelpSection(
                     icon = Icons.Default.Star,
-                    title = "AI-vurdering",
+                    title = "Fiskeplass-forslag",
                     iconTint = Color(0xFFFFC107),
                     items = listOf(
-                        "Stjerner indikerer hvor gunstig dagen er for fiske",
-                        "Basert på vær, tid og sesong"
+                        "Når du har planlagt en fisketur får du anbefalinger om fiskeplasser som passer kriteriene dine.",
+                        "Du får foreslått de nærmeste fiskeplassene, og de beste fiskeplassene innen avstanden du har valgt."
                     )
                 )
 
@@ -128,6 +132,15 @@ fun DashboardHelpDialog(
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Vi tar forbehold om at anbefalingene appen gir om fiskeplasser ikke er perfekte. " +
+                            "Anbefalingene er basert på værmeldingen for lokasjonen og tidspunktet du velger, " +
+                            "og vil være mer usikker jo lenger frem i tid du ønsker å fiske.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
