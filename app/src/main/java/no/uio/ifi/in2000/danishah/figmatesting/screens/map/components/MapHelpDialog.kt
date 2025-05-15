@@ -60,32 +60,42 @@ fun MapHelpDialog(
                     .padding(20.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
                 ) {
+                    // Centered
                     Text(
                         text = "Karthjelp",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Center).fillMaxWidth(),
+
                     )
-                    
+
+                    // Close button
                     IconButton(
                         onClick = onDismiss,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(40.dp)
                     ) {
                         Icon(Icons.Default.Close, contentDescription = "Lukk")
                     }
                 }
-                
+
                 Text(
-                    text = "Finn de beste fiskeplassene med FiskeFinner",
+                    text = "Lær å bruke kartet til Fiskefinner",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
                 )
-                
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
                 
                 HelpSection(
                     icon = Icons.Default.MyLocation,
@@ -104,22 +114,9 @@ fun MapHelpDialog(
                     title = "Fiskeplasser",
                     iconTint = Color(0xFF2196F3),
                     items = listOf(
-                        "Blå markører viser enkeltplasser for fiske.",
-                        "Markører med tall viser områder med flere fiskeplasser.",
-                        "Trykk på markør for å se detaljer om fiskeplassen.",
-                        "Zoom inn for å se flere detaljer i områder med mange markører."
-                    )
-                )
-                
-                HelpSection(
-                    icon = Icons.Default.Waves,
-                    title = "Fiskearter og KI-modell",
-                    iconTint = Color(0xFF4CAF50),
-                    items = listOf(
-                        "Fargede områder viser hvor det er sannsynlig å finne fiskearter.",
-                        "Forskjellige farger representerer ulike fiskearter.",
-                        "Mørkere farge betyr høyere sannsynlighet for å finne fisken.",
-                        "Fra FiskeArter-fanen kan du velge hvilke arter du vil se."
+                        "Fiskeplasser innenlands vises med ikoner samlet når du er zoomet langt ut, og indivuelt når man zoomer nærmere",
+                        "For å se mer info om en gruppe fiskeplasser, eller en individuell fiskeplass kan man trykke på fiskeplassen",
+                        "Fiskeplassene innenlands vil vises med ulike ikoner avhengig av rangeringen den aktuelle fiskeplassen har for nåværende tidspunkt"
                     )
                 )
                 
@@ -129,8 +126,8 @@ fun MapHelpDialog(
                     iconTint = Color(0xFFFFC107),
                     items = listOf(
                         "Stjerner viser KI-modellens vurdering av fiskeplassen.",
-                        "Vurderingen kombinerer værforhold, årstid, tid på døgnet og fiskepreferanser.",
-                        "Høyere antall stjerner betyr bedre fiskeforhold."
+                        "Vurderingen kombinerer værforhold, årstid, tid på døgnet og individuelle fiskepreferanser.",
+                        "Fiskeplasser synlig på kartet kan vurderes fra 1 til 4 stjerner"
                     )
                 )
                 
@@ -139,24 +136,34 @@ fun MapHelpDialog(
                     title = "Søk",
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     items = listOf(
-                        "Bruk søkefeltet øverst for å finne steder.",
-                        "Skriv inn stedsnavnet og trykk søk.",
-                        "Velg et forslag fra listen som dukker opp."
+                        "Bruk søkefeltet øverst for å navigere deg rundt i Norge",
+                        "Skriv inn stedsnavnet og trykk søk eller velg et forslag fra listen som dukker opp",
                     )
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
                 Text(
-                    text = "God fisketur! :)",
+                    text = "God tur og skitt fiske!",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
+                Text(
+                    text = "Vi tar forbehold om at anbefalingene Fiskeplanlegger gir om fiskeplasser ikke er perfekte. " +
+                            "Anbefalingene er basert på værdata for lokasjonen og tidspunktet du velger, " +
+                            "og vil være mer usikker jo lenger frem i tid du ønsker å fiske.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+
+
+
+
                 // Bottom close button
                 androidx.compose.material3.Button(
                     onClick = onDismiss,

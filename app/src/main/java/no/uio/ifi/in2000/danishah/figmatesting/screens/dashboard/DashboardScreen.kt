@@ -331,20 +331,20 @@ fun FishTripPlannerSection(navController: NavController) {
                         }
                     }
                 }
-                /* ---------- 1. Planner box for radiusKm  ---------- */
+                //Select your radius
                 PlannerInputBox(
                     modifier = Modifier
                         .weight(1f)
                         .height(100.dp),
-                    iconRes = R.drawable.distance, // icon shown in the box
+                    iconRes = R.drawable.distance,
                     label   = "$radiusKm km"
                 ) {
                     if (!showRadiusDialog) { // simple «double-tap» protection
-                        showRadiusDialog = true // trigger the dialog to be shown
+                        showRadiusDialog = true
                     }
                 }
 
-                /* ---------- 2. show the dialog right after the Row block ---------- */
+
                 if (showRadiusDialog) {
                     ShowRadiusDialog(
                         current   = radiusKm,
@@ -363,7 +363,7 @@ fun FishTripPlannerSection(navController: NavController) {
                 LaunchedEffect(selectedSpeciesId, selectedLocation, selectedDateTime, radiusKm) {
                     if (selectedSpeciesId != null && selectedLocation != null && selectedDateTime != null) {
                         isLoading = true
-                        delay(300) // small delay for more smooth UX
+                        delay(300) //Small debounce
 
                         val selectedSpeciesName =
                             SpeciesMapper.getName(selectedSpeciesId!!)?.lowercase() ?: "torsk"
@@ -375,7 +375,7 @@ fun FishTripPlannerSection(navController: NavController) {
 
                         val (sortedByDistance, sortedByAI) = withContext(Dispatchers.Default) {
 
-                            // 1. fetch all places for the chosen species
+                            //Fetch all places for the chosen species
                             val result = dashboardViewModel.getFishSpotsForSpecies(
                                 userLat      = userLat,
                                 userLon      = userLon,
@@ -386,10 +386,10 @@ fun FishTripPlannerSection(navController: NavController) {
 
                             val nearby = result.filter { (_, distKm) -> distKm <= radiusKm }
 
-                            /* -------- CLOSEST (already sorted by distance) -------- */
-                            val distanceSorted = nearby // done
 
-                            /* -------- AI ranking of the same "nearby" spots ---- */
+                            val distanceSorted = nearby
+
+                            //AI rank the nearby spots
                             val aiRated = nearby.map { (plass, _) ->
                                 async {
                                     val lat = plass.p.coordinates[1]
@@ -451,7 +451,7 @@ fun FishTripPlannerSection(navController: NavController) {
                         }
 
                         distanceSorted = sortedByDistance
-                        distanceMap    = distanceSorted.toMap() // new line
+                        distanceMap    = distanceSorted.toMap()
                         aiSorted = sortedByAI
                         isLoading = false
                     }
@@ -530,7 +530,7 @@ fun PlannerInputBox(
                 text      = label,
                 fontSize  = 12.sp,
                 textAlign = TextAlign.Center,
-                maxLines  = 1, // keep it to one line
+                maxLines  = 1,
                 overflow  = TextOverflow.Ellipsis,
                 fontWeight  = FontWeight.SemiBold,
                 softWrap  = false
@@ -544,7 +544,7 @@ fun TopFishingSpots(
     title: String,
     spots: List<Pair<MittFiskeLocation, Double>>,
     shouldShowEmptyState: Boolean,
-    distanceMap: Map<MittFiskeLocation, Double>? = null,   // new (with default)
+    distanceMap: Map<MittFiskeLocation, Double>? = null,
     isLoading: Boolean = false
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -580,7 +580,6 @@ fun TopFishingSpots(
         } else {
             spots.forEachIndexed { index, (plass, verdi) ->
 
-                /* ---------- backgroud color for each spot ---------- */
                 val backgroundColor = if (title.contains("Beste", ignoreCase = true)) {
                     val base = MaterialTheme.colorScheme.primary
                     when (index) {
@@ -593,8 +592,7 @@ fun TopFishingSpots(
                     MaterialTheme.colorScheme.surfaceVariant
                 }
 
-                /* ---------- find distance (always) ---------- */
-                val distKm = distanceMap?.get(plass) ?: verdi   // use map if it exists
+                val distKm = distanceMap?.get(plass) ?: verdi
 
                 Card(
                     modifier = Modifier
@@ -606,14 +604,12 @@ fun TopFishingSpots(
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
 
-                        /* name + ranking */
                         Text(
                             text = "${index + 1}. ${plass.name}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium
                         )
 
-                        /* always showing X km away, also for best conditions */
                         Text(
                             text = "${"%.1f".format(distKm)} km unna",
                             style = MaterialTheme.typography.bodySmall,
