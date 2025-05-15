@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 object UserLocation {
-    /**  Sist kjente posisjon som brukeren har samtykket til å dele  */
+    /* Last known position the user has accepted to share */
     private val _current = MutableStateFlow<Point?>(null)
     val current = _current.asStateFlow()
 

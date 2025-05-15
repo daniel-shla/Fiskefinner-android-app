@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -46,7 +47,7 @@ fun FishSpeciesSelectionScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         if (navigationInProgress) {
-            delay(2000) // forhindrer utilsiktede klikk fra navigasjon
+            delay(2000) // prevents accidental clicks from navigation
             previousHandle?.set("speciesNavigationInProgress", false)
         }
         allowClick.value = true
@@ -64,7 +65,7 @@ fun FishSpeciesSelectionScreen(navController: NavController) {
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Tilbake")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Tilbake")
                     }
                 }
             )

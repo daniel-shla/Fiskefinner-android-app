@@ -29,7 +29,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -37,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,7 +61,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.danishah.figmatesting.R
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
@@ -112,14 +111,14 @@ fun DashboardScreen(
                         Text("Ingen værdata tilgjengelig.")
                     }
                 }
-                else -> { /* ingenting */ }
+                else -> { /* nothing */ }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
             FishTripPlannerSection(navController = navController)
         }
 
-        // Hjelpe‐knapp nederst til venstre
+        // help button in the bottom left corner
         SmallFloatingActionButton(
             onClick = { showHelpDialog.value = true },
             shape = CircleShape,
@@ -150,7 +149,6 @@ fun FishTripPlannerSection(navController: NavController) {
     val savedStateHandle = currentBackStackEntry?.savedStateHandle
     val coroutineScope = rememberCoroutineScope()
     var canNavigate by remember { mutableStateOf(true) }
-    var clickEnabled by remember { mutableStateOf(true) }
 
     val selectedSpeciesIdLive = savedStateHandle?.getLiveData<Int>("selectedSpeciesId")
     val selectedLocationLive = savedStateHandle?.getLiveData<Point>("selectedLocation")
@@ -158,10 +156,10 @@ fun FishTripPlannerSection(navController: NavController) {
     var selectedSpeciesId by remember { mutableStateOf<Int?>(null) }
     var selectedLocation by remember { mutableStateOf<Point?>(null) }
     var selectedDateTime by rememberSaveable(stateSaver = LocalDateTimeSaver) {
-        mutableStateOf<LocalDateTime?>(
+        mutableStateOf(
             null)
     }
-    var radiusKm by rememberSaveable { mutableStateOf(100) }   // standard
+    var radiusKm by rememberSaveable { mutableStateOf(100) } // standard
     val radiusLive = savedStateHandle?.getLiveData<Int>("radiusKm")
     LaunchedEffect(radiusLive) {
         radiusLive?.observeForever { v -> radiusKm = v }
@@ -221,7 +219,7 @@ fun FishTripPlannerSection(navController: NavController) {
                 )
 
                 Text(
-                    text = "Reset",
+                    text = "Tilbakestill",
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .clickable {
@@ -266,15 +264,11 @@ fun FishTripPlannerSection(navController: NavController) {
                             navController.navigate("fish_species_picker") {
                                 launchSingleTop = true
                             }
-                            delay(2000) // litt mer buffer
+                            delay(2000) // buffer
                             canNavigate = true
                         }
                     }
                 }
-
-
-
-
 
                 PlannerInputBox(
                     iconRes = R.drawable.clock,
@@ -328,17 +322,17 @@ fun FishTripPlannerSection(navController: NavController) {
                         }
                     }
                 }
-                /* ---------- 1. Planner-boksen for radius  ---------- */
+                /* ---------- 1. Planner box for radiusKm  ---------- */
                 PlannerInputBox(
-                    iconRes = R.drawable.distance,     // ditt ikon
+                    iconRes = R.drawable.distance, // icon shown in the box
                     label   = "$radiusKm km"
                 ) {
-                    if (!showRadiusDialog) {           // enkel «double-tap» beskyttelse
-                        showRadiusDialog = true        // trigge at dialogen vises
+                    if (!showRadiusDialog) { // simple «double-tap» protection
+                        showRadiusDialog = true // trigger the dialog to be shown
                     }
                 }
 
-                /* ---------- 2. Vis dialogen rett etter Row-blokken ---------- */
+                /* ---------- 2. show the dialog right after the Row block ---------- */
                 if (showRadiusDialog) {
                     ShowRadiusDialog(
                         current   = radiusKm,
@@ -350,8 +344,6 @@ fun FishTripPlannerSection(navController: NavController) {
                         onDismiss = { showRadiusDialog = false }
                     )
                 }
-
-
             }
 
             if (selectedSpeciesId != null && selectedDateTime != null && selectedLocation != null) {
@@ -359,7 +351,7 @@ fun FishTripPlannerSection(navController: NavController) {
                 LaunchedEffect(selectedSpeciesId, selectedLocation, selectedDateTime, radiusKm) {
                     if (selectedSpeciesId != null && selectedLocation != null && selectedDateTime != null) {
                         isLoading = true
-                        delay(300) // litt forsinkelse for smooth UX
+                        delay(300) // small delay for more smooth UX
 
                         val selectedSpeciesName =
                             SpeciesMapper.getName(selectedSpeciesId!!)?.lowercase() ?: "torsk"
@@ -371,10 +363,10 @@ fun FishTripPlannerSection(navController: NavController) {
 
                         val (sortedByDistance, sortedByAI) = withContext(Dispatchers.Default) {
 
-                            // 1. Hent alle plasser for valgt art
-                            val result = dashboardViewModel.hentFiskeplasserForArt(
-                                brukerLat      = userLat,
-                                brukerLon      = userLon,
+                            // 1. fetch all places for the chosen species
+                            val result = dashboardViewModel.getFishSpotsForSpecies(
+                                userLat      = userLat,
+                                userLon      = userLon,
                                 selectedSpecies = selectedSpeciesName,
                                 polygonWKT     = polygonWKT,
                                 pointWKT       = pointWKT
@@ -382,19 +374,19 @@ fun FishTripPlannerSection(navController: NavController) {
 
                             val nearby = result.filter { (_, distKm) -> distKm <= radiusKm }
 
-                            /* -------- NÆRMESTE (allerede sortert på distanse) -------- */
-                            val distanceSorted = nearby                       // <– ferdig
+                            /* -------- CLOSEST (already sorted by distance) -------- */
+                            val distanceSorted = nearby // done
 
-                            /* -------- AI-RANGERING av de samme «nearby»-plassene ---- */
+                            /* -------- AI ranking of the same "nearby" spots ---- */
                             val aiRated = nearby.map { (plass, _) ->
                                 async {
                                     val lat = plass.p.coordinates[1]
                                     val lon = plass.p.coordinates[0]
 
-                                    val weather = dashboardViewModel.hentVaerFor(
+                                    val weather = dashboardViewModel.getWeatherFor(
                                         lat        = lat,
                                         lon        = lon,
-                                        tidspunkt  = selectedDateTime!!,
+                                        pointOfTime  = selectedDateTime!!,
                                         repository = dashboardViewModel.repository
                                     )
 
@@ -411,7 +403,6 @@ fun FishTripPlannerSection(navController: NavController) {
                                                     weather.data.next_6_hours.details.precipitation_amount.toFloat()
                                                 else -> 0f
                                             },
-                                            // precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
                                             airPressure   = details.air_pressure_at_sea_level.toFloat(),
                                             cloudCover    = details.cloud_area_fraction.toFloat(),
                                             timeOfDay     = selectedDateTime!!.hour.toFloat(),
@@ -422,7 +413,7 @@ fun FishTripPlannerSection(navController: NavController) {
 
                                         val predictor = FishPredictor(context)
                                         val input = floatArrayOf(
-                                            trainingData.speciesId.toFloat(),
+                                            trainingData.speciesId,
                                             trainingData.temperature,
                                             trainingData.windSpeed,
                                             trainingData.precipitation,
@@ -435,27 +426,27 @@ fun FishTripPlannerSection(navController: NavController) {
                                         )
 
                                         val scores = predictor.predictScores(input)
-                                        val probability = scores[2] + scores[3]   // “bra” + “svært bra”
+                                        val probability = scores[2] + scores[3]   // good + very good
                                         plass to probability
                                     } else null
                                 }
                             }.awaitAll()
                                 .filterNotNull()
-                                .sortedByDescending { it.second }                 // høyest score øverst
+                                .sortedByDescending { it.second } // highest score on top
 
-                            /* -- Returner begge lister som et Pair -- */
+                            /* -- return both lists as a Pair -- */
                             distanceSorted to aiRated
                         }
 
                         distanceSorted = sortedByDistance
-                        distanceMap    = distanceSorted.toMap()   //  ←  ny linje
+                        distanceMap    = distanceSorted.toMap() // new line
                         aiSorted = sortedByAI
                         isLoading = false
                     }
                 }
             }
-            }
         }
+    }
 
     if (selectedSpeciesId != null && selectedLocation != null && selectedDateTime != null) {
         if (isLoading) {
@@ -485,14 +476,14 @@ fun FishTripPlannerSection(navController: NavController) {
                         title = "Beste fiskeforhold",
                         spots               = aiSorted.take(3).map { it.first to it.second.toDouble() },
                         shouldShowEmptyState = true,
-                        distanceMap         = distanceMap          // ← nytt
+                        distanceMap         = distanceMap
                     )
                 }
             }
         }
     }
-
 }
+
 @Composable
 fun PlannerInputBox(
     iconRes: Int,
@@ -524,9 +515,9 @@ fun PlannerInputBox(
             )
             Text(
                 text      = label,
-                fontSize  = 12.sp,             // litt mindre tekst
+                fontSize  = 12.sp,
                 textAlign = TextAlign.Center,
-                maxLines  = 1,                 // hold på én linje
+                maxLines  = 1, // keep it to one line
                 overflow  = TextOverflow.Ellipsis,
                 fontWeight  = FontWeight.SemiBold,
                 softWrap  = false
@@ -535,97 +526,92 @@ fun PlannerInputBox(
     }
 }
 
+@Composable
+fun TopFishingSpots(
+    title: String,
+    spots: List<Pair<MittFiskeLocation, Double>>,
+    shouldShowEmptyState: Boolean,
+    distanceMap: Map<MittFiskeLocation, Double>? = null,   // new (with default)
+    isLoading: Boolean = false
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(vertical = 8.dp),
+            textAlign = TextAlign.Center
+        )
 
-
-
-
-    @Composable
-    fun TopFishingSpots(
-        title: String,
-        spots: List<Pair<MittFiskeLocation, Double>>,
-        shouldShowEmptyState: Boolean,
-        distanceMap: Map<MittFiskeLocation, Double>? = null,   // ← nytt (med default)
-        isLoading: Boolean = false
-    ) {
-
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+        if (isLoading) {
+            Row(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(vertical = 8.dp),
-                textAlign = TextAlign.Center
-            )
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator()
+            }
+            return
+        }
 
-            if (isLoading) {
-                Row(
+        if (spots.isEmpty() && shouldShowEmptyState) {
+            Text(
+                text = "Ingen fiskeplasser funnet.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(8.dp)
+            )
+        } else {
+            spots.forEachIndexed { index, (plass, verdi) ->
+
+                /* ---------- backgroud color for each spot ---------- */
+                val backgroundColor = if (title.contains("Beste", ignoreCase = true)) {
+                    val base = MaterialTheme.colorScheme.primary
+                    when (index) {
+                        0 -> base.copy(alpha = 0.45f) // most intense color
+                        1 -> base.copy(alpha = 0.30f)
+                        2 -> base.copy(alpha = 0.15f)
+                        else -> base.copy(alpha = 0.10f)
+                    }
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
+
+                /* ---------- find distance (always) ---------- */
+                val distKm = distanceMap?.get(plass) ?: verdi   // use map if it exists
+
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.Center
+                        .padding(bottom = 8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = backgroundColor)
                 ) {
-                    CircularProgressIndicator()
-                }
-                return
-            }
+                    Column(modifier = Modifier.padding(12.dp)) {
 
-            if (spots.isEmpty() && shouldShowEmptyState) {
-                Text(
-                    text = "Ingen fiskeplasser funnet.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(8.dp)
-                )
-            } else {
-                spots.forEachIndexed { index, (plass, verdi) ->
+                        /* name + ranking */
+                        Text(
+                            text = "${index + 1}. ${plass.name}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
 
-                    /* ---------- bakgrunnsfarge pr. plass ---------- */
-                    val backgroundColor = if (title.contains("Beste", ignoreCase = true)) {
-                        val base = MaterialTheme.colorScheme.primary
-                        when (index) {
-                            0 -> base.copy(alpha = 0.45f)   // mest intens
-                            1 -> base.copy(alpha = 0.30f)
-                            2 -> base.copy(alpha = 0.15f)
-                            else -> base.copy(alpha = 0.10f)
-                        }
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    }
-
-                    /* ---------- NYTT: finn distansen (alltid) ---------- */
-                    val distKm = distanceMap?.get(plass) ?: verdi   // bruker kartet hvis det finnes
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = backgroundColor)
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-
-                            /* Navn + nummerering */
-                            Text(
-                                text = "${index + 1}. ${plass.name}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium
-                            )
-
-                            /* Viser alltid «X km unna» – også for «Beste fiskeforhold» */
-                            Text(
-                                text = "${"%.1f".format(distKm)} km unna",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        /* always showing X km away, also for best conditions */
+                        Text(
+                            text = "${"%.1f".format(distKm)} km unna",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
         }
     }
+}
 
 @Composable
 fun ShowRadiusDialog(
@@ -633,7 +619,7 @@ fun ShowRadiusDialog(
     onConfirm: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var tmp by remember { mutableStateOf(current) }
+    var tmp by remember { mutableIntStateOf(current) }
 
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismiss,
@@ -668,5 +654,3 @@ fun ShowRadiusDialog(
         }
     )
 }
-
-
