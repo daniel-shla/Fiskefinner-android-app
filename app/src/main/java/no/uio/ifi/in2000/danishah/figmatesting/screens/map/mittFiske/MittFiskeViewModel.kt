@@ -26,7 +26,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import kotlin.math.roundToInt
 
-// UI state for viewmodelen
+// UI state for the viewmodel
 data class MittFiskeUiState(
     val locations: List<MittFiskeLocation> = emptyList(),
     val isLoading: Boolean = true,
@@ -46,7 +46,7 @@ class MittFiskeViewModel(
     private val weatherCache = mutableMapOf<Pair<Int, Int>, TimeSeries>()
 
 
-    // Henter lokasjoner og starter prediksjon
+    // get location and start prediction
     fun loadLocations(
         polygonWKT: String,
         pointWKT: String,
@@ -67,7 +67,7 @@ class MittFiskeViewModel(
 
                     _uiState.update { it.copy(locations = locations) }
 
-                    /* start AI-rating; gir beskjed når ferdig */
+                    /* start AI rating; gives message when done */
                     rateAllLocationsWithAI(
                         weatherViewModel,
                         predictionViewModel,
@@ -86,7 +86,7 @@ class MittFiskeViewModel(
         }
     }
 
-    // Filtrerer vekk lokasjoner utenfor kartets synlige område
+    // filter out locations outside the viewport /visible part of the map
     fun filterLocationsInBounds(
         locations: List<MittFiskeLocation>,
         bounds: CoordinateBounds
@@ -100,7 +100,7 @@ class MittFiskeViewModel(
     }
 
 
-    // Kjører prediksjon for alle lokasjoner og oppdaterer rating basert på predikert klasse
+    // run prediction for all locations and update rating based on predicted class
     private fun rateAllLocationsWithAI(
         weatherViewModel: WeatherViewModel,
         predictionViewModel: PredictionViewModel,
@@ -113,7 +113,7 @@ class MittFiskeViewModel(
 
             val selected = "laks"
 
-            val relevantLocations = allLocations.toList().filter { loc -> //Hjelpefunksjon for testing
+            val relevantLocations = allLocations.toList().filter { loc -> // helper function for testing
                 val allFish = loc.locs.flatMap { it.fe ?: emptyList() }
                 val species = extractSupportedFish(allFish)
                 selected in species
@@ -140,10 +140,10 @@ class MittFiskeViewModel(
                     Log.d("AI_CLASS", "Class for ${loc.name}: $predictedClass")
 
 
-                    loc.copy(rating = predictedClass + 1) // Rating mellom 1–4
+                    loc.copy(rating = predictedClass + 1) // Rating between 1 and 4
 
                 } catch (e: Exception) {
-                    Log.e("AI_ERROR", "Feil ved ${loc.name}: ${e.message}")
+                    Log.e("AI_ERROR", "Error at ${loc.name}: ${e.message}")
                     null
                 }
             }
@@ -164,7 +164,7 @@ class MittFiskeViewModel(
 
 
 
-    // Lager inputdata for modellen basert på vær og lokasjon
+    // create input data for the model based on weather and location
     private fun makeTrainingData(
         loc: MittFiskeLocation,
         weather: TimeSeries,
@@ -176,11 +176,11 @@ class MittFiskeViewModel(
 
         return TrainingData(
             speciesId = speciesId,
-            temperature = details.air_temperature?.toFloat() ?: 0f,
-            windSpeed = details.wind_speed?.toFloat() ?: 0f,
+            temperature = details.air_temperature.toFloat() ?: 0f,
+            windSpeed = details.wind_speed.toFloat() ?: 0f,
             precipitation = weather.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
-            airPressure = details.air_pressure_at_sea_level?.toFloat() ?: 0f,
-            cloudCover = details.cloud_area_fraction?.toFloat() ?: 0f,
+            airPressure = details.air_pressure_at_sea_level.toFloat() ?: 0f,
+            cloudCover = details.cloud_area_fraction.toFloat() ?: 0f,
             timeOfDay = hour,
             season = when (now.monthValue) {
                 in 3..5 -> 1f
@@ -196,8 +196,8 @@ class MittFiskeViewModel(
     private val _bitmapsReady = MutableStateFlow(false)
     val bitmapsReady: StateFlow<Boolean> = _bitmapsReady
 
-    lateinit var locationBitmaps: Map<Int, Bitmap>
-    lateinit var clusterBitmaps: Map<Int, Bitmap>
+    private lateinit var locationBitmaps: Map<Int, Bitmap>
+    private lateinit var clusterBitmaps: Map<Int, Bitmap>
 
     fun preloadBitmaps(context: Context) {
         locationBitmaps = mapOf(
@@ -227,7 +227,7 @@ class MittFiskeViewModel(
     }
 
 
-    // Fjerner fiskearter vi ikke støtter i modelltreninga
+    // remove fish species not supported by the training of the model
     private fun extractSupportedFish(fe: List<String>?): List<String> {
         val supported = listOf(
             "torsk", "makrell", "sei", "ørret", "sjøørret", "laks", "gjedde",
@@ -241,7 +241,7 @@ class MittFiskeViewModel(
         } ?: emptyList()
     }
 
-    // Returnerer lokasjoner filtrert på valgt art
+    // return locations filtered by chosen species
     fun getLocationsForSelectedSpecies(): List<MittFiskeLocation> {
         val selected = _uiState.value.selectedSpecies ?: return allLocations
         return allLocations.filter { loc ->
@@ -251,7 +251,7 @@ class MittFiskeViewModel(
         }
     }
 
-    // Setter valgt art eksplisitt
+    // explicitly set chosen species
     fun selectSpecies(species: String) {
         _uiState.update { it.copy(selectedSpecies = species.trim().lowercase()) }
     }

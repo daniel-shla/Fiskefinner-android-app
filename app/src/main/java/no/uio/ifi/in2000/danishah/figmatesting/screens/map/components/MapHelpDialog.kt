@@ -15,21 +15,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.Waves
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -96,10 +92,10 @@ fun MapHelpDialog(
                     title = "Navigering",
                     iconTint = MaterialTheme.colorScheme.primary,
                     items = listOf(
-                        "Sveip med fingeren for å bevege kartet",
-                        "Knip fingrene for å zoome inn og ut",
-                        "Bruk + og - knappene for presis zooming",
-                        "Trykk på lokasjonsknappen for å finne din posisjon"
+                        "Sveip med fingeren for å bevege kartet.",
+                        "Knip fingrene for å zoome inn og ut.",
+                        "Bruk + og - knappene for presis zooming.",
+                        "Trykk på lokasjonsknappen for å finne din posisjon."
                     )
                 )
                 
@@ -108,22 +104,22 @@ fun MapHelpDialog(
                     title = "Fiskeplasser",
                     iconTint = Color(0xFF2196F3),
                     items = listOf(
-                        "Blå markører viser enkeltplasser for fiske",
-                        "Markører med tall viser områder med flere fiskeplasser",
-                        "Trykk på markør for å se detaljer om fiskeplassen",
-                        "Zoom inn for å se flere detaljer i områder med mange markører"
+                        "Blå markører viser enkeltplasser for fiske.",
+                        "Markører med tall viser områder med flere fiskeplasser.",
+                        "Trykk på markør for å se detaljer om fiskeplassen.",
+                        "Zoom inn for å se flere detaljer i områder med mange markører."
                     )
                 )
                 
                 HelpSection(
                     icon = Icons.Default.Waves,
-                    title = "Fiskearter og AI-modell",
+                    title = "Fiskearter og KI-modell",
                     iconTint = Color(0xFF4CAF50),
                     items = listOf(
-                        "Fargede områder viser hvor det er sannsynlig å finne fiskearter",
-                        "Forskjellige farger representerer ulike fiskearter",
-                        "Mørkere farge betyr høyere sannsynlighet for å finne fisken",
-                        "Fra FiskeArter-fanen kan du velge hvilke arter du vil se"
+                        "Fargede områder viser hvor det er sannsynlig å finne fiskearter.",
+                        "Forskjellige farger representerer ulike fiskearter.",
+                        "Mørkere farge betyr høyere sannsynlighet for å finne fisken.",
+                        "Fra FiskeArter-fanen kan du velge hvilke arter du vil se."
                     )
                 )
                 
@@ -132,9 +128,9 @@ fun MapHelpDialog(
                     title = "Vurderinger",
                     iconTint = Color(0xFFFFC107),
                     items = listOf(
-                        "Stjerner viser AI-modellens vurdering av fiskeplassen",
-                        "Vurderingen kombinerer værforhold, årstid, tid på døgnet og fiskepreferanser",
-                        "Høyere antall stjerner betyr bedre fiskeforhold"
+                        "Stjerner viser KI-modellens vurdering av fiskeplassen.",
+                        "Vurderingen kombinerer værforhold, årstid, tid på døgnet og fiskepreferanser.",
+                        "Høyere antall stjerner betyr bedre fiskeforhold."
                     )
                 )
                 
@@ -143,9 +139,9 @@ fun MapHelpDialog(
                     title = "Søk",
                     iconTint = MaterialTheme.colorScheme.tertiary,
                     items = listOf(
-                        "Bruk søkefeltet øverst for å finne steder",
-                        "Skriv inn stedsnavnet og trykk søk",
-                        "Velg et forslag fra listen som dukker opp"
+                        "Bruk søkefeltet øverst for å finne steder.",
+                        "Skriv inn stedsnavnet og trykk søk.",
+                        "Velg et forslag fra listen som dukker opp."
                     )
                 )
                 
