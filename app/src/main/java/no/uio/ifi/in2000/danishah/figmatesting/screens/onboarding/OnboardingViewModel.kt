@@ -29,6 +29,7 @@ class OnboardingViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     //THE AMOUNT OF BOILERPLATE RREEEEEEEEEEE
+    // love that for us <3
 
     fun updateName(name: String) {
         _uiState.value = _uiState.value.copy(name = name)
