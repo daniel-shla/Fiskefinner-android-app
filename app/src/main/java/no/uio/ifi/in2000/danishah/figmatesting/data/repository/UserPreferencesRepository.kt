@@ -83,13 +83,7 @@ class UserPreferencesRepository(private val context: Context) {
             preferences[WINTER_PREFERENCE] = userPreferences.winterPreference
         }
     }
-    
-    suspend fun setOnboardingCompleted() {
-        context.dataStore.edit { preferences ->
-            preferences[HAS_COMPLETED_ONBOARDING] = true
-        }
-    }
-    
+
     val hasCompletedOnboarding: Flow<Boolean> = context.dataStore.data.map { preferences ->
         preferences[HAS_COMPLETED_ONBOARDING] ?: false
     }

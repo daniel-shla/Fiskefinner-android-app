@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UserPreferences(
     val name: String = "",
-    val fishingLevel: String = "Ivrig fisker", // For fun, every user is "Ivrig fisker"
+    val fishingLevel: String = "Ivrig fisker", // For fun, every user is "Ivrig fisker", "Eager fisher"
     
     val temperaturePreference: Int = 3,
     val windPreference: Int = 3,

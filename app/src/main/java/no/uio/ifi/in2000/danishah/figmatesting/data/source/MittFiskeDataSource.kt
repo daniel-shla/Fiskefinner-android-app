@@ -91,15 +91,15 @@ class MittFiskeDataSource(
                         )
                     )
                 } catch (e: Exception) {
-                    Log.e("MittFiske", " Feil i parsing av element $i: ${e.message}")
+                    Log.e("MittFiske", "Error parsing element $i: ${e.message}")
                     continue
                 }
             }
 
-            Log.d("MittFiske", "Ferdig – antall steder: ${result.size}")
+            Log.d("MittFiske", "DONE - number of spots: ${result.size}")
             result
         } catch (e: Exception) {
-            Log.e("MittFiske", "Feil ved henting: ${e.message}")
+            Log.e("MittFiske", "Error fetching: ${e.message}")
             emptyList()
         }
     }

@@ -1,5 +1,4 @@
 package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
-import android.graphics.Bitmap
 import kotlinx.serialization.Serializable
 
 import com.mapbox.geojson.Point

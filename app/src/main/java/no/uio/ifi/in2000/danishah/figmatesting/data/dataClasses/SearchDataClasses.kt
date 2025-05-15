@@ -17,12 +17,6 @@ data class SearchSuggestion(
 )
 
 @Serializable
-data class SearchResponse(
-    val suggestions: List<SearchSuggestion>,
-    val attribution: String
-)
-
-@Serializable
 data class SearchFeature(
     val name: String,
     val coordinates: PointDto,
@@ -69,23 +63,3 @@ data class Feature(
     val properties: FeatureProperties
 )
 
-@Serializable
-data class RetrieveResponse(
-    val type: String,
-    val features: List<Feature>,
-    val attribution: String
-) {
-    fun toSearchFeature(): SearchFeature? {
-        if (features.isEmpty()) return null
-        
-        val feature = features[0]
-        val properties = feature.properties
-        return SearchFeature(
-            name = properties.name,
-            coordinates = PointDto(properties.coordinates.longitude, properties.coordinates.latitude),
-            address = properties.address,
-            fullAddress = properties.full_address,
-            featureType = properties.feature_type
-        )
-    }
-} 
