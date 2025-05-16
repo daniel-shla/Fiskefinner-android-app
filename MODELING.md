@@ -6,16 +6,16 @@ Skissen illustrerer hvordan MVVM-arkitektur er brukt, hvordan data strømmer fra
 ### **Diagrammet er nyttig for å illustrere:**
 
 **MVVM-struktur:**
-- Den viser en tydelig separasjon mellom UI (Compose-skjermer), ViewModel-lag, Repositories, DataSources, og de faktiske datakildene
+Den viser en tydelig separasjon mellom UI (Compose-skjermer), ViewModel-lag, Repositories, DataSources, og de faktiske datakildene
 
 **Dataflyt og avhengigheter:**
-- Det blir tydelig hvilke komponenter som bruker hvilke andre komponenter, og hvordan informasjon flyter fra API-klienter og lagrede filer opp til UI-en.
+Det blir tydelig hvilke komponenter som bruker hvilke andre komponenter, og hvordan informasjon flyter fra API-klienter og lagrede filer opp til UI-en.
 
 **Modularisering:**
-- Man ser at ansvarsområder er fordelt mellom spesialiserte komponenter
+Man ser at ansvarsområder er fordelt mellom spesialiserte komponenter
 
 **Eksterne tjenester:**
-- Skissen gjør det klart hvilke tredjepartstjenester som brukes (her har vi Mapbox, MET API, MittFiske API), og hvordan de integreres
+Skissen gjør det klart hvilke tredjepartstjenester som brukes (her har vi Mapbox, MET API, MittFiske API), og hvordan de integreres
 
 ```mermaid
 graph TD
