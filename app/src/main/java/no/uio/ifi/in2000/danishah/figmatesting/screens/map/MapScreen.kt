@@ -202,8 +202,8 @@ fun MapScreen(
     }
 
     // Effect to draw fish species polygons when species states change
-    LaunchedEffect(speciesStates) {
-        // Get all enabled species
+     LaunchedEffect(speciesStates, isLoadingSpecies) {        // Get all enabled species
+         if (isLoadingSpecies) return@LaunchedEffect
         val enabledSpecies = speciesStates.values
             .filter { it.isEnabled && it.isLoaded }
 

@@ -112,7 +112,7 @@ fun FishSelectionScreen(
             
             // Info text about limitations
             Text(
-                text = "Du kan vise opptil 8 fiskearter samtidig på kartet.",
+                text = "Du kan vise opptil 6 fiskearter samtidig på kartet.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
