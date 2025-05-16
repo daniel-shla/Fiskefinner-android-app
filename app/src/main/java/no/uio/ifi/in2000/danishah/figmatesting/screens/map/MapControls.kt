@@ -21,10 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import com.mapbox.geojson.Point
+import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.UserLocation
-import no.uio.ifi.in2000.danishah.figmatesting.screens.map.MapViewModel
 
 @Composable
 fun MapControls(
