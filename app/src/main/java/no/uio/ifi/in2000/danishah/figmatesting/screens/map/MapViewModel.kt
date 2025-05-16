@@ -52,7 +52,6 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
     private var searchJob: Job? = null
 
     private val _shouldDraw = MutableStateFlow(false)
-    val shouldDraw: StateFlow<Boolean> = _shouldDraw
 
     private val _clusters = MutableStateFlow<List<Cluster>>(emptyList())
     val clusters: StateFlow<List<Cluster>> = _clusters
@@ -153,6 +152,9 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
 
         _clusters.value = clusterLocations(locations, zoom)
     }
+/*
+
+    //Older more rigid function for clustering MittFiskeLocations
 
     private fun clusterLocations(locations: List<MittFiskeLocation>, zoom: Double): List<Cluster> {
         val ratedLocations = locations.filter { it.rating != null }
@@ -216,8 +218,42 @@ class MapViewModel(private val repository: LocationRepository = LocationReposito
         Log.d("ClusterDebug", "Zoom: $zoom, total: ${locations.size}, rated: ${ratedLocations.size}, clusters: ${clusters.size}")
         return clusters
     }
+*/
 
+    //Help function for smoother and dynamic calculation of clustering
 
+    private fun calculateMaxDistance(zoom: Double): Double {
+        return 4000000.0 / (2.0.pow(zoom))  //Make clustering more aggressive by increasing first var here, make clustering less aggresive by dereasing it.
+    }
+    private fun clusterLocations(locations: List<MittFiskeLocation>, zoom: Double): List<Cluster> {
+        val ratedLocations = locations.filter { it.rating != null }
+        val maxDistance = calculateMaxDistance(zoom)
+
+        if (maxDistance <= 0.0) {
+            return ratedLocations.map { loc ->
+                Cluster(loc.toPoint(), listOf(loc), loc.rating?.toFloat())
+            }
+        }
+
+        val clusters = mutableListOf<Cluster>()
+
+        for (loc in ratedLocations) {
+            val point = loc.toPoint()
+
+            val cluster = clusters.minByOrNull { haversineDistance(it.center, point) }
+
+            if (cluster != null && haversineDistance(cluster.center, point) < maxDistance) {
+                val newSpots = cluster.spots + loc
+                val newRating = newSpots.mapNotNull { it.rating }.average().toFloat()
+                clusters.remove(cluster)
+                clusters.add(cluster.copy(spots = newSpots, averageRating = newRating))
+            } else {
+                clusters.add(Cluster(center = point, spots = listOf(loc), averageRating = loc.rating?.toFloat()))
+            }
+        }
+
+        return clusters
+    }
 
 
 

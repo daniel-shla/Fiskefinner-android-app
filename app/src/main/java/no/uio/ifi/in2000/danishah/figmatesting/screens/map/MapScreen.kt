@@ -42,11 +42,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.CoordinateBounds
@@ -63,7 +61,6 @@ import com.mapbox.maps.plugin.annotation.generated.PolygonAnnotationOptions
 import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.createPolygonAnnotationManager
 import com.mapbox.maps.plugin.gestures.gestures
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -75,10 +72,6 @@ import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FishSpeciesData
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
-import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
-import no.uio.ifi.in2000.danishah.figmatesting.data.source.MittFiskeDataSource
-import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
-import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.PredictionViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection.FishSpeciesViewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.ClusterOverviewCard
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.cards.LocationInfoCard
@@ -87,7 +80,6 @@ import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.MapHelpDia
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.SpeciesLegend
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.components.getColorForSpecies
 import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModel
-import no.uio.ifi.in2000.danishah.figmatesting.screens.map.mittFiske.MittFiskeViewModelFactory
 import android.graphics.Color as AndroidColor
 
 
@@ -99,7 +91,6 @@ fun MapScreen(
     mittFiskeViewModel: MittFiskeViewModel
 )
  {
-    val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
     val context = LocalContext.current
 
@@ -121,7 +112,6 @@ fun MapScreen(
     val mapCenter by viewModel.mapCenter.collectAsState()
     val zoomLevel by viewModel.zoomLevel.collectAsState()
     val showMinCharsHint by viewModel.showMinCharsHint.collectAsState()
-    val clusters by viewModel.clusters.collectAsState()
 
     val mapViewRef = remember { mutableStateOf<MapView?>(null) }
     val currentBounds = remember { mutableStateOf<CoordinateBounds?>(null) }
@@ -130,13 +120,9 @@ fun MapScreen(
     val polygonAnnotationManagerRef = remember { mutableStateOf<PolygonAnnotationManager?>(null) }
 
     // Using the passed FishSpeciesViewModel instead of creating a new one
-    val availableSpecies by fishSpeciesViewModel.availableSpecies.collectAsState()
     val speciesStates by fishSpeciesViewModel.speciesStates.collectAsState()
     val isLoadingSpecies by fishSpeciesViewModel.isLoading.collectAsState()
-    val showSpeciesPanel by fishSpeciesViewModel.showSpeciesPanel.collectAsState()
 
-    val weatherViewModel: WeatherViewModel = viewModel()
-    val predictionViewModel: PredictionViewModel = viewModel()
 
     val annotationToLocation = remember { mutableMapOf<String, MittFiskeLocation>() }
     val selectedLocation = remember { mutableStateOf<MittFiskeLocation?>(null) }
@@ -240,8 +226,7 @@ fun MapScreen(
                     drawFishSpeciesPolygons(
                         manager,
                         state.species,
-                        getColorForSpecies(state.species.scientificName),
-                        state.opacity
+                        getColorForSpecies(state.species.scientificName)
                     )
                 }
             }
@@ -264,8 +249,7 @@ fun MapScreen(
                         drawFishSpeciesPolygons(
                             manager,
                             state.species,
-                            getColorForSpecies(state.species.scientificName),
-                            state.opacity
+                            getColorForSpecies(state.species.scientificName)
                         )
                     }
                 }
@@ -280,7 +264,6 @@ fun MapScreen(
             modifier = Modifier.fillMaxSize(),
             mapViewportState = mapViewportState,
         ){
-            val drawPoints by viewModel.shouldDraw.collectAsState()
 
             LaunchedEffect(mittFiskeState.locations, mittFiskeState.isLoading) {
                 if (!mittFiskeState.isLoading && mittFiskeState.locations.isNotEmpty()) {
@@ -341,13 +324,15 @@ fun MapScreen(
                     .filterNotNull()
                     .map { cameraState -> cameraState.center to cameraState.zoom }
                     .distinctUntilChanged()
-                    .debounce(300)//kan justeres
+                    .debounce(300)//Can be adjustes
                     .collect { (center, zoom) ->
                         withContext(Dispatchers.Default) {
                             val mapView = mapViewRef.value ?: return@withContext
-                            val bounds = mapView.mapboxMap.coordinateBoundsForCamera(
-                                CameraOptions.Builder().center(center).zoom(zoom).build()
-                            )
+                            val bounds = withContext(Dispatchers.Main) { //Moved coordinateBoundsForCamera to support Mapbox backend sensitivity
+                                mapView.mapboxMap.coordinateBoundsForCamera(
+                                    CameraOptions.Builder().center(center).zoom(zoom).build()
+                                )
+                            }
 
                             val locations = mittFiskeState.locations
                             val visibleLocations = mittFiskeViewModel.filterLocationsInBounds(locations, bounds)
@@ -356,7 +341,7 @@ fun MapScreen(
                                 viewModel.updateClusters(visibleLocations, zoom)
                                 viewModel.triggerDraw()
 
-                                // Forbered alle annotasjoner i bakgrunnen
+                                //Imporved annotations
                                 val newAnnotations = viewModel.clusters.value.map { cluster ->
                                     val isCluster = cluster.spots.size > 1
                                     val bitmap = if (isCluster) {
@@ -375,7 +360,7 @@ fun MapScreen(
                                     options to cluster.spots.first()
                                 }
 
-                                // Kun UI-operasjoner på hovedtråden
+                                //Only UI on the Main here
                                 withContext(Dispatchers.Main) {
                                     val manager = annotationManagerRef.value ?: return@withContext
                                     manager.deleteAll()
@@ -445,11 +430,11 @@ fun MapScreen(
                 onValueChange = { viewModel.updateSearchQuery(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp), // Litt høyere enn 48dp, men fortsatt kompakt
+                    .height(56.dp),
                 placeholder = {
                     Text(
                         "Søk...",
-                        style = MaterialTheme.typography.bodySmall // mindre font for å passe inn
+                        style = MaterialTheme.typography.bodySmall
                     )
                 },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
@@ -503,9 +488,9 @@ fun MapScreen(
                         showMinCharsHint = showMinCharsHint,
                         onSuggestionClick = { suggestion ->
                             viewModel.selectSuggestion(suggestion)
-                            viewModel.navigateToLocation(suggestion) // naviger kartet
-                            viewModel.setSearchActive(false)         // skjul resultatlista
-                            focusManager.clearFocus()                // skjul tastatur
+                            viewModel.navigateToLocation(suggestion) //Support onclick suggestion
+                            viewModel.setSearchActive(false)         //Hide results
+                            focusManager.clearFocus()                //Hide keyboard
                         }
 
                     )
@@ -517,8 +502,8 @@ fun MapScreen(
                     location = location,
                     onClose  = { selectedLocation.value = null },
                     modifier = Modifier
-                        .align(Alignment.TopCenter)   // samme som cluster
-                        .padding(top = 60.dp)         // samme avstand
+                        .align(Alignment.TopCenter)   // Same as cluster
+                        .padding(top = 60.dp)
                 )
             }
 
@@ -592,7 +577,7 @@ fun MapScreen(
                 }
             }
         }
-        
+
         // Help button in bottom left
         SmallFloatingActionButton(
             onClick = { showHelpDialog.value = true },
@@ -604,11 +589,11 @@ fun MapScreen(
         ) {
             Icon(Icons.Default.QuestionMark, contentDescription = "Hjelp")
         }
-        
+
         // Species legend below search bar (not at bottom-right anymore)
 
     }
-    
+
     // Show help dialog when needed
     if (showHelpDialog.value) {
         MapHelpDialog(onDismiss = { showHelpDialog.value = false })
@@ -619,8 +604,7 @@ fun MapScreen(
 private fun drawFishSpeciesPolygons(
     polygonManager: PolygonAnnotationManager?,
     fishSpecies: FishSpeciesData,
-    color: Color,
-    opacity: Float
+    color: Color
 ) {
 
     if (polygonManager == null || fishSpecies.ratedPolygons.isEmpty()) return
@@ -678,15 +662,4 @@ private fun Int.toHexString(): String {
 // Store the last first polygon point for teleportation
 private var lastFirstPolygonPoint: Point? = null
 
-fun boundsToPolygonWKT(bounds: CoordinateBounds): String {
-    val sw = bounds.southwest
-    val ne = bounds.northeast
 
-    return "POLYGON((" +
-            "${sw.longitude()} ${ne.latitude()}," +
-            "${sw.longitude()} ${sw.latitude()}, " +
-            "${ne.longitude()} ${sw.latitude()}, " +
-            "${ne.longitude()} ${ne.latitude()}, " +
-            "${sw.longitude()} ${ne.latitude()}" +
-            "))"
-}

@@ -1,5 +1,6 @@
 package no.uio.ifi.in2000.danishah.figmatesting.screens.fishselection
 
+import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.components.FishSelectionHelpDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,28 +15,31 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.LoactionForecast.WeatherViewModel
@@ -48,38 +52,22 @@ fun FishSelectionScreen(
     onNavigateToMap: () -> Unit = {}
 ) {
     // Using the FishSpeciesViewModel instance
-    val availableSpecies by fishSpeciesViewModel.availableSpecies.collectAsState()
     val speciesStates by fishSpeciesViewModel.speciesStates.collectAsState()
     val isLoadingSpecies by fishSpeciesViewModel.isLoading.collectAsState()
-
-    val context = LocalContext.current
+    var showHelp by remember { mutableStateOf(false) }
     val weatherViewModel: WeatherViewModel = viewModel()
 
-
-    
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        // Header
-        Text(
-            text = "Fisketyper",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Fish Species Selection content
-        Column {
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().padding(16.dp)) {
             Text(
-                text = "Velg arter som skal vises på kartet",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
+                text = "Ranger og vis fiskeplasser langs Norges kyst",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                )
+            Spacer(Modifier.height(8.dp))
+
+            Spacer(Modifier.height(16.dp))
             
             // Add Go to Map button
             val enabledSpeciesCount = speciesStates.values.count { it.isEnabled && it.isLoaded }
@@ -114,7 +102,7 @@ fun FishSelectionScreen(
                         strokeWidth = 2.dp
                     )
                     Text(
-                        text = "Laster fiskedata...",
+                        text = "Laster og vurderer fiskeplasser...",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(start = 8.dp)
                     )
@@ -175,13 +163,13 @@ fun FishSelectionScreen(
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.Bold
                                     )
-                                    
+
                                     Text(
                                         text = scientificName.replace("_", " "),
                                         style = MaterialTheme.typography.bodySmall,
                                         fontWeight = FontWeight.Light
                                     )
-                                    
+
                                     if (state.isEnabled && state.isLoaded) {
                                         Text(
                                             text = "${state.species.polygons.size} polygoner",
@@ -206,43 +194,6 @@ fun FishSelectionScreen(
 
                                 }
                             }
-                            
-                            // Only show opacity slider if species is enabled
-                            if (state.isEnabled && state.isLoaded) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (state.opacity < 0.1f) 
-                                            Icons.Default.VisibilityOff 
-                                        else 
-                                            Icons.Default.Visibility,
-                                        contentDescription = "Synlighet",
-                                        modifier = Modifier.size(16.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    
-                                    Slider(
-                                        value = state.opacity,
-                                        onValueChange = { 
-                                            fishSpeciesViewModel.updateSpeciesOpacity(scientificName, it) 
-                                        },
-                                        valueRange = 0f..1f,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(horizontal = 8.dp)
-                                    )
-                                    
-                                    // Display opacity percentage
-                                    Text(
-                                        text = "${(state.opacity * 100).toInt()}%",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.width(32.dp)
-                                    )
-                                }
-                            }
                         }
                     }
                 }
@@ -251,6 +202,22 @@ fun FishSelectionScreen(
                 item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
+
+        SmallFloatingActionButton(
+            onClick = { showHelp = true },
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(16.dp)
+                .size(40.dp)
+        ) {
+            Icon(Icons.Default.QuestionMark, contentDescription = "Hjelp")
+        }
+        if (showHelp) {
+            FishSelectionHelpDialog(onDismiss = { showHelp = false })
+        }
     }
 }
+
+
 

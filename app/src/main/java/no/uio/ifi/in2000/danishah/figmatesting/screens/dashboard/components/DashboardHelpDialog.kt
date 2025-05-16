@@ -58,19 +58,26 @@ fun DashboardHelpDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 // top text and closing button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
                 ) {
+                    // Midtstilt tittel
                     Text(
                         text = "Dashbord-hjelp",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Center)
                     )
+
+                    // Lukke-knapp oppe til høyre
                     IconButton(
                         onClick = onDismiss,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(40.dp)
                     ) {
                         Icon(Icons.Default.Close, contentDescription = "Lukk")
                     }
@@ -79,10 +86,11 @@ fun DashboardHelpDialog(
                 Text(
                     text = "Her finner du en oversikt over dagens vær, og kan planlegge en fisketur.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 HelpSection(
                     icon = Icons.Default.WbSunny,
@@ -115,27 +123,25 @@ fun DashboardHelpDialog(
                         "Du får foreslått de nærmeste fiskeplassene, og de beste fiskeplassene innen avstanden du har valgt."
                     )
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
-
                 Text(
-                    text = "Lykke til på fisketuren!",
+                    text = "God tur og skitt fiske!",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Vi tar forbehold om at anbefalingene appen gir om fiskeplasser ikke er perfekte. " +
-                            "Anbefalingene er basert på værmeldingen for lokasjonen og tidspunktet du velger, " +
+                    text = "Vi tar forbehold om at anbefalingene Fiskeplanlegger gir om fiskeplasser ikke er perfekte. " +
+                            "Anbefalingene er basert på værdata for lokasjonen og tidspunktet du velger, " +
                             "og vil være mer usikker jo lenger frem i tid du ønsker å fiske.",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
+
 
                 Button(
                     onClick = onDismiss,
@@ -158,7 +164,7 @@ fun DashboardHelpDialog(
 // could refactor this and from MapHelpDialog to be in a separate "components"-package
 // fix if we have time to spare
 @Composable
-private fun HelpSection(
+fun HelpSection(
     icon: ImageVector,
     title: String,
     iconTint: Color,
