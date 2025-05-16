@@ -99,6 +99,277 @@ graph TD
     FishPredictor --> Local-TFLite-model
 ```
 
+# **Klassediagram**
+
+Klassediagrammet er et viktig verktøy i objektorientert modellering, og det gir struktur og oversikt over hvordan datamodellene og logikken i appen henger sammen.
+
+### **Diagrammet er nyttig for å illustrere:**
+- Koblingen mellom ViewModels, Repositories, og API-klienter.
+- Hva slags data som finnes i f.eks. FishSpot, WeatherData, UserPreferences.
+- Hvilke tjenester bruker hvilke modeller.
+- Strukturen i forretningslogikk, hva som skjer "under panseret" i FishPredictor for eksempel.
+
+```mermaid
+classDiagram
+    MapViewModel <-- MapScreen : uses
+    MapViewModel --> LocationState : contains
+    MapViewModel --> MapViewState : contains
+
+    MapViewModel --> FishSpeciesViewModel : interacts
+    FishSpeciesViewModel --> FishSpeciesRepository : uses
+    FishSpeciesViewModel --> FishSpeciesData : manages
+    FishSpeciesRepository --> FishSpeciesData : provides
+    FishSpeciesViewModel <-- FishSelectionScreen : uses
+
+    MapViewModel --> LocationRepository : depends on
+    LocationRepository --> LocationsDC : provides
+    LocationRepository --> LocationDataSource : uses
+    LocationDataSource --> LocationsDC : creates
+    LocationDataSource --> MapboxAPIClient : uses
+
+    MapViewModel --> WeatherViewModel : interacts
+    WeatherViewModel --> WeatherRepository : uses
+    WeatherViewModel --> WeatherData : manages
+    WeatherRepository --> WeatherData : provides
+    WeatherRepository --> WeatherApiService : uses
+    WeatherApiService <|-- WeatherAPIClient : implements
+
+    MapViewModel --> MittFiskeViewModel : interacts
+    MittFiskeViewModel --> MittFiskeRepository : uses
+    MittFiskeViewModel --> MittFiskeDC : manages
+    MittFiskeRepository --> MittFiskeDC : provides
+    MittFiskeRepository --> MittFiskeDataSource : uses
+
+    DashboardViewModel --> WeatherViewModel : uses
+    DashboardViewModel --> PredictionViewModel : uses
+    DashboardViewModel --> MittFiskeRepository : uses
+    DashboardViewModel --> DashboardState : contains
+    DashboardViewModel --> WeatherData : uses
+    DashboardScreen --> DashboardViewModel : uses
+    DashboardScreen --> DashboardState : displays
+
+    PredictionViewModel --> FishPredictor : uses
+    PredictionViewModel --> PredictionResult : manages
+    FishPredictor --> PredictionResult : produces
+    FishPredictor --> SpeciesMapper : uses
+
+    class MapViewModel {
+        -locationRepository: LocationRepository
+        +locationState: StateFlow~LocationState~
+        +mapViewState: StateFlow~MapViewState~
+        +searchQuery: StateFlow~String~
+        +searchResults: StateFlow~List~SearchSuggestion~~
+        +isLoading: StateFlow~Boolean~
+        +isSearchActive: StateFlow~Boolean~
+        +mapCenter: StateFlow~LatLng~
+        +zoomLevel: StateFlow~Float~
+        +clusters: StateFlow~List~Cluster~~
+        +showMinCharsHint: StateFlow~Boolean~
+        +onMapEvent(event: MapEvent)
+        +updateSearchQuery(query: String)
+        +toggleSearchActive(active: Boolean)
+        +updateMapCenter(center: LatLng)
+        +updateZoomLevel(zoom: Float)
+    }
+
+    class MapScreen {
+        +MapboxMap
+        +SearchBar
+        +LocationMarkers
+        +ClusteredMarkers
+        +FishingSpotDetails
+        +LayerToggleButtons
+        +ZoomControls
+        +HelpDialog
+    }
+
+    class FishSpeciesViewModel {
+        -fishSpeciesRepository: FishSpeciesRepository
+        +fishSpecies: StateFlow~List~FishSpeciesData~~
+        +enabledFishSpecies: StateFlow~List~FishSpeciesData~~
+        +speciesStates: StateFlow~List~FishSpeciesData~~
+        +isLoading: StateFlow~Boolean~
+        +toggleSpeciesEnabled(id: String)
+        +updateSpeciesOpacity(id: String, opacity: Float)
+    }
+
+    class FishSpeciesRepository {
+        -context: Context
+        +getAllSpecies(): Flow~List~FishSpeciesData~~
+        +getEnabledSpecies(): Flow~List~FishSpeciesData~~
+        +updateSpeciesEnabled(id: String, enabled: Boolean)
+        +updateSpeciesOpacity(id: String, opacity: Float)
+        +loadGeoJsonData(): GeoJsonFishData
+    }
+
+    class FishSpeciesData {
+        +id: String
+        +name: String
+        +description: String
+        +imageUrl: String
+        +enabled: Boolean
+        +opacity: Float
+    }
+
+    class FishSelectionScreen {
+        +SpeciesList
+        +SpeciesToggleButtons
+        +OpacitySliders
+        +FilterOptions
+        +NavigationButton
+    }
+
+    class LocationRepository {
+        -locationDataSource: LocationDataSource
+        +getAllLocations(): Flow~List~LocationsDC~~
+        +searchLocations(query: String): Flow~List~LocationsDC~~
+    }
+
+    class LocationDataSource {
+        -mapboxApiClient: MapboxAPIClient
+        +getLocations(): List~LocationsDC~
+        +searchLocations(query: String): List~LocationsDC~
+        +NORWAY_CENTER: LatLng
+        +COUNTRY_ZOOM: Float
+    }
+
+    class LocationsDC {
+        +id: String
+        +name: String
+        +coordinates: LatLng
+        +description: String
+    }
+
+    class MapboxAPIClient {
+        -httpClient: HttpClient
+        +getLocationDetails(placeId: String): LocationsDC
+        +searchPlaces(query: String): List~LocationsDC~
+    }
+
+    class WeatherViewModel {
+        -weatherRepository: WeatherRepository
+        +weatherData: StateFlow~WeatherData~
+        +uiState: StateFlow~WeatherUiState~
+        +getWeatherForLocation(lat: Double, lon: Double)
+    }
+
+    class WeatherRepository {
+        -weatherApiService: WeatherApiService
+        +getWeatherForLocation(lat: Double, lon: Double): Flow~WeatherData~
+        +getWeather(lat: Double, lon: Double): WeatherResponse
+    }
+
+    class WeatherApiService {
+        <<interface>>
+        +getWeather(latitude: Double, longitude: Double): WeatherResponse
+    }
+
+    class WeatherAPIClient {
+        -client: HttpClient
+        +getWeather(latitude: Double, longitude: Double): WeatherResponse
+    }
+
+    class WeatherData {
+        +temperature: Float
+        +windSpeed: Float
+        +precipitation: Float
+        +humidity: Float
+        +cloudCover: Int
+        +pressure: Float
+    }
+
+    class MittFiskeViewModel {
+        -mittFiskeRepository: MittFiskeRepository
+        +uiState: StateFlow~MittFiskeUiState~
+        +fishingSpots: StateFlow~List~MittFiskeDC~~
+        +selectedSpot: StateFlow~MittFiskeDC?~
+        +fetchFishingSpots()
+        +selectFishingSpot(id: String)
+        +selectSpecies(species: String)
+        +getFilteredLocations(): List~MittFiskeLocation~
+    }
+
+    class MittFiskeRepository {
+        -mittFiskeDataSource: MittFiskeDataSource
+        +getFishingSpots(): Flow~List~MittFiskeDC~~
+        +getFishingSpotDetails(id: String): Flow~MittFiskeDC~
+    }
+
+    class MittFiskeDataSource {
+        -httpClient: HttpClient
+        +getFishingSpots(): List~MittFiskeDC~
+        +getFishingSpotDetails(id: String): MittFiskeDC
+    }
+
+    class MittFiskeDC {
+        +id: String
+        +name: String
+        +location: LatLng
+        +description: String
+    }
+
+    class DashboardViewModel {
+        -mittFiskeRepository: MittFiskeRepository
+        -weatherViewModel: WeatherViewModel
+        -predictionViewModel: PredictionViewModel
+        +dashboardState: StateFlow~DashboardState~
+        +uiState: StateFlow~WeatherUiState~
+        +updateDashboard()
+        +getWeatherForLocation(lat: Double, lon: Double)
+    }
+
+    class DashboardScreen {
+        +WeatherInfoCard
+        +PredictionResultsDisplay
+        +RecommendedLocationsSection
+        +CurrentConditionsSection
+        +ForecastChart
+    }
+
+    class DashboardState {
+        +upcomingTrips: List~FishingTrip~
+        +weatherInfo: WeatherData?
+        +recommendedLocations: List~LocationWithScore~
+        +isLoading: Boolean
+    }
+
+    class PredictionViewModel {
+        -fishPredictor: FishPredictor
+        +predictionResult: StateFlow~PredictionResult~
+        +predictFishing(location: LocationsDC, weather: WeatherData, time: Long)
+    }
+
+    class FishPredictor {
+        -context: Context
+        -model: TFLiteModel
+        +predict(location: LocationsDC, weather: WeatherData, time: Long): PredictionResult
+        +loadModel()
+    }
+
+    class SpeciesMapper {
+        +mapSpeciesToInputFeature(species: String): Int
+        +mapInputFeatureToSpecies(featureIndex: Int): String
+    }
+
+    class PredictionResult {
+        +fishingScore: Float
+        +recommendedSpecies: List~String~
+        +bestTimeOfDay: String
+    }
+
+    class LocationState {
+        +currentLocation: LatLng?
+        +searchResults: List~LocationResult~
+        +isLoading: Boolean
+    }
+
+    class MapViewState {
+        +center: LatLng
+        +zoom: Float
+        +visibleRegion: CoordinateBounds?
+    }
+```
+
 # **Applikasjonsflyt-diagram**
 
 Diagrammet viser hvilken vei brukeren går gjennom appen, hva som skjer i bakgrunnen av logikk og datainnhenting, og hvilke komponenter og tjenester som er involvert. Det starter ved app-lansering og viser hvordan brukeren navigerer videre, og hvordan data hentes og behandles i lagvise arkitekturkomponenter.
