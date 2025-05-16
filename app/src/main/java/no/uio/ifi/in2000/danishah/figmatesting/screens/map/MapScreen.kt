@@ -409,11 +409,13 @@ fun MapScreen(
                     cluster = selectedCluster.value!!,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(top = 90.dp),
+                        .padding(top = 140.dp),
                     onClose = { selectedCluster.value = null}
                 )
             }
         }
+
+
 
 
 
@@ -503,7 +505,7 @@ fun MapScreen(
                     onClose  = { selectedLocation.value = null },
                     modifier = Modifier
                         .align(Alignment.TopCenter)   // Same as cluster
-                        .padding(top = 60.dp)
+                        .padding(top = 110.dp)
                 )
             }
 

@@ -100,7 +100,7 @@ fun FishSpeciesSelectionScreen(navController: NavController) {
                         Image(
                             painter = painterResource(id = getImageForSpecies(species)),
                             contentDescription = species,
-                            modifier = Modifier.size(100.dp)
+                            modifier = Modifier.size(240.dp)
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -119,7 +119,7 @@ fun FishSpeciesSelectionScreen(navController: NavController) {
 fun getImageForSpecies(species: String): Int {
     return when (species.lowercase()) {
         "abbor" -> R.drawable.abbor
-        "røye" -> R.drawable.oerret
+        "røye" -> R.drawable.roeye
         "ørret" -> R.drawable.trout
         "laks" -> R.drawable.salmon_icon
         "gjedde" -> R.drawable.gjedde
