@@ -6,16 +6,16 @@ Skissen illustrerer hvordan MVVM-arkitektur er brukt, hvordan data strømmer fra
 ### **Diagrammet er nyttig for å illustrere:**
 
 **MVVM-struktur:**
-Den viser en tydelig separasjon mellom UI (Compose-skjermer), ViewModel-lag, Repositories, DataSources, og de faktiske datakildene
+- Den viser en tydelig separasjon mellom UI (Compose-skjermer), ViewModel-lag, Repositories, DataSources, og de faktiske datakildene
 
 **Dataflyt og avhengigheter:**
-Det blir tydelig hvilke komponenter som bruker hvilke andre komponenter, og hvordan informasjon flyter fra API-klienter og lagrede filer opp til UI-en.
+- Det blir tydelig hvilke komponenter som bruker hvilke andre komponenter, og hvordan informasjon flyter fra API-klienter og lagrede filer opp til UI-en.
 
 **Modularisering:**
-Man ser at ansvarsområder er fordelt mellom spesialiserte komponenter
+- Man ser at ansvarsområder er fordelt mellom spesialiserte komponenter
 
 **Eksterne tjenester:**
-Skissen gjør det klart hvilke tredjepartstjenester som brukes (her har vi Mapbox, MET API, MittFiske API), og hvordan de integreres
+- Skissen gjør det klart hvilke tredjepartstjenester som brukes (her har vi Mapbox, MET API, MittFiske API), og hvordan de integreres
 
 ```mermaid
 graph TD
@@ -377,16 +377,16 @@ Diagrammet viser hvilken vei brukeren går gjennom appen, hva som skjer i bakgru
 ### **Diagrammet er nyttig for å illustrere:**
 
 **Brukerflyt og dataflyt samtidig:**
-– Viser både hva brukeren gjør og hvordan appen svarer teknisk, og gir en god samlet illustrasjon av UX og arkitektur
+* Viser både hva brukeren gjør og hvordan appen svarer teknisk, og gir en god samlet illustrasjon av UX og arkitektur
 
 **Forenkle videreutvikling:**
-– Utviklere ser tydelig hvordan funksjonalitet er bygd opp, hvor data kommer fra, og hvilke ViewModels og API-er som påvirker hvilke skjermer
+* Utviklere ser tydelig hvordan funksjonalitet er bygd opp, hvor data kommer fra, og hvilke ViewModels og API-er som påvirker hvilke skjermer
 
 **Støtter feilsøking:**
-– Man ser fort hvor i flyten noe kan gå galt. F.eks. hvis prediksjonen feiler, kan man følge stien gjennom DashboardViewModel, WeatherViewModel, PredictionViewModel, FishPredictor og TFLite
+* Man ser fort hvor i flyten noe kan gå galt. F.eks. hvis prediksjonen feiler, kan man følge stien gjennom DashboardViewModel, WeatherViewModel, PredictionViewModel, FishPredictor og TFLite
 
 **Dokumenterer avhengigheter:**
-– Det gir en oversikt over hvordan komponenter er koblet sammen, og hvor stramme/løse koblingene er
+* Det gir en oversikt over hvordan komponenter er koblet sammen, og hvor stramme/løse koblingene er
 
 ```mermaid
 flowchart LR
