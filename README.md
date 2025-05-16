@@ -133,6 +133,6 @@ Ratingen vises i UI og brukes som grunnlag for anbefaling.
 * Oscar Lyckander – \[[oscar.lyckander@usit.uio.no](mailto:oscar.lyckander@usit.uio.no)]
  
 
-## 💬 Lisens / Bruk
+## Lisens / Bruk
 
 Dette prosjektet er utviklet som en del av IN2000 ved Universitetet i Oslo. Ikke ment for kommersiell bruk.
