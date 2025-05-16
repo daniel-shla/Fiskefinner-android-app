@@ -15,7 +15,7 @@ FiskeFinner er en Android-app utviklet i Kotlin som viser anbefalte fiskesteder 
 
 <table>
   <tr>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/58e9a307-9f2d-48d7-bafd-0da8fc90050c" width="250"/></td>
+    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/08d63beb-db5b-49ef-9254-b502b4a23559" width="250"/></td>
     <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/633a8b8e-20ee-491a-9cbe-905b717f084f" width="250"/></td>
     <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/2d137be9-5d0c-4044-9dd1-8e1c3e16a71f" width="250"/></td>
   </tr>
@@ -30,6 +30,7 @@ FiskeFinner er en Android-app utviklet i Kotlin som viser anbefalte fiskesteder 
     <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/8bdee5c3-8b83-4300-b2c8-8d6c9ca63532" width="250"/></td>
   </tr>
 </table>
+
 
 
 
