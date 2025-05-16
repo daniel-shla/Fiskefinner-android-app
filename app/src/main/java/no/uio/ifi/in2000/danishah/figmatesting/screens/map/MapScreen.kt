@@ -309,11 +309,10 @@ fun MapScreen(
                 )
                 currentBounds.value = bounds
 
-                // Legg til klikk på kart for å lukke åpne kort
                 mapView.gestures.addOnMapClickListener {
                     selectedLocation.value = null
                     selectedCluster.value = null
-                    false // behold annen default-oppførsel
+                    false
                 }
             }
 
@@ -324,7 +323,7 @@ fun MapScreen(
                     .filterNotNull()
                     .map { cameraState -> cameraState.center to cameraState.zoom }
                     .distinctUntilChanged()
-                    .debounce(300)//Can be adjustes
+                    .debounce(300)//Can be adjusted
                     .collect { (center, zoom) ->
                         withContext(Dispatchers.Default) {
                             val mapView = mapViewRef.value ?: return@withContext
@@ -341,7 +340,7 @@ fun MapScreen(
                                 viewModel.updateClusters(visibleLocations, zoom)
                                 viewModel.triggerDraw()
 
-                                //Imporved annotations
+                                //Improved annotations
                                 val newAnnotations = viewModel.clusters.value.map { cluster ->
                                     val isCluster = cluster.spots.size > 1
                                     val bitmap = if (isCluster) {
