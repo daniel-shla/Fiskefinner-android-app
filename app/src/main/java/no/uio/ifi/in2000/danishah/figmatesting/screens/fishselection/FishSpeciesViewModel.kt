@@ -6,10 +6,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.FishSpeciesData
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.RatedPolygon
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TimeSeries
@@ -56,66 +58,71 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         }
         _speciesStates.value = initialStates
     }
-    
+
     fun toggleSpecies(scientificName: String, weatherViewModel: WeatherViewModel) {
         val currentStates = _speciesStates.value.toMutableMap()
         val currentState = currentStates[scientificName] ?: return
-        
+
         val newEnabled = !currentState.isEnabled
-        
-        if (newEnabled) {
-            val currentlyEnabled = currentStates.values.count { it.isEnabled }
-            if (currentlyEnabled >= maxConcurrentSpecies) {
-                _errorMessage.value = "Maksimalt $maxConcurrentSpecies arter kan vises samtidig."
-                return
-            }
+        val currentlyEnabled = currentStates.values.count { it.isEnabled }
+
+        if (newEnabled && currentlyEnabled >= maxConcurrentSpecies) {
+            _errorMessage.value = "Maksimalt $maxConcurrentSpecies arter kan vises samtidig."
+            return
         }
-        
-        viewModelScope.launch {
-            // If enabling and not loaded yet, load the data
-            if (newEnabled && !currentState.isLoaded) {
+
+        // Oppdater state umiddelbart (rask UI-respons)
+        currentStates[scientificName] = currentState.copy(isEnabled = newEnabled)
+        _speciesStates.value = currentStates
+
+        // Start lasting og vurdering i bakgrunnen
+        if (newEnabled && !currentState.isLoaded) {
+            loadAndRateSpecies(scientificName, weatherViewModel)
+        }
+    }
+
+    private fun loadAndRateSpecies(scientificName: String, weatherViewModel: WeatherViewModel) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentStates = _speciesStates.value.toMutableMap()
+            val currentState = currentStates[scientificName] ?: return@launch
+
+            withContext(Dispatchers.Main) {
                 _isLoading.value = true
-                _errorMessage.value = null
-                
-                try {
-                    val fishData = repository.loadFishSpeciesPolygons(scientificName)
-                    
-                    if (fishData != null) {
-                        // Update with loaded data
-                        val ratedData = rateOneSpecies(fishData, weatherViewModel)
-                        currentStates[scientificName] = SpeciesState(
-                            species = ratedData,
-                            isEnabled = true,
-                            isLoaded = true
-                        )
-                    } else {
-                        currentStates[scientificName] = currentState.copy(
-                            isEnabled = true
-                        )
+            }
+
+            try {
+                val fishData = repository.loadFishSpeciesPolygons(scientificName)
+                if (fishData != null) {
+                    val ratedData = rateOneSpecies(fishData, weatherViewModel)
+                    currentStates[scientificName] = SpeciesState(
+                        species = ratedData,
+                        isEnabled = true,
+                        isLoaded = true
+                    )
+                } else {
+                    withContext(Dispatchers.Main) {
                         _errorMessage.value = "Kunne ikke laste data for ${FishSpeciesData.getCommonName(scientificName)}"
                     }
-                } catch (e: Exception) {
-                    // Just toggle the state if loading fails
-                    currentStates[scientificName] = currentState.copy(
-                        isEnabled = true
-                    )
-                    _errorMessage.value = "Feil ved lasting av data: ${e.message}"
-                } finally {
-                    _isLoading.value = false
                 }
-            } else {
-                currentStates[scientificName] = currentState.copy(
-                    isEnabled = newEnabled
-                )
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    _errorMessage.value = "Feil ved lasting: ${e.message}"
+                }
             }
-            
-            _speciesStates.value = currentStates
+
+            withContext(Dispatchers.Main) {
+                _speciesStates.value = currentStates
+                _isLoading.value = false
+            }
         }
     }
 
 
 
-    
+
+
+
+
 
     data class SpeciesState(
         val species: FishSpeciesData,
@@ -133,29 +140,40 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         _speciesStates.value = currentStates
     }
 
+    private val predictor = FishPredictor(getApplication())
 
     private suspend fun rateOneSpecies(
         species: FishSpeciesData,
         weatherViewModel: WeatherViewModel
-    ): FishSpeciesData {
-        val predictor = FishPredictor(getApplication())
-        var teller = 0
-        val rated = species.polygons.mapNotNull { polygon ->
-            if (polygon.isEmpty()) {
-                Log.d("FishRating", " Tom polygon, hopper over")
-                return@mapNotNull null
+    ): FishSpeciesData = withContext(Dispatchers.Default) {
+        val existing = species.ratedPolygons.associateBy { it.points.toSet() }
+        val rated = mutableListOf<RatedPolygon>()
+
+        for ((index, polygon) in species.polygons.withIndex()) {
+            if (polygon.isEmpty()) continue
+
+            if (existing.containsKey(polygon.toSet())) {
+                rated.add(existing[polygon.toSet()]!!)
+                continue
             }
+
+            if (index % 30 == 0) {
+                kotlinx.coroutines.yield()
+            }
+
 
             val (lon, lat) = getCentroid(polygon)
-
             val key = coordinateKey(lat, lon)
-            val weather = weatherCache.getOrPut(key) {
+
+            val weather = weatherCache[key] ?: run {
                 try {
-                    weatherViewModel.getWeatherForLocation(lat, lon)
+                    val fetched = weatherViewModel.getWeatherForLocation(lat, lon)
+                    weatherCache[key] = fetched
+                    fetched
                 } catch (e: Exception) {
                     null
-                }!!
-            }
+                }
+            } ?: continue
 
 
             val input = floatArrayOf(
@@ -163,22 +181,19 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
                 weather.data.instant.details.wind_speed.toFloat(),
                 weather.data.instant.details.cloud_area_fraction.toFloat(),
                 weather.data.next_1_hours?.details?.precipitation_amount?.toFloat() ?: 0f,
-                lat.toFloat(),
-                lon.toFloat(),
+                lat.toFloat(), lon.toFloat(),
                 0f, 0f, 0f, 0f
             )
 
             val rating = predictor.predict(input)
-            teller+=1
-            if (teller % 100 == 0) {
-                Log.d("RATING", "Rating polygon #$teller: $rating")
+            if (index % 100 == 0) {
+                Log.d("RATING", "Rating polygon #$index: $rating")
             }
-            //Log.d("FishRating", " Rated polygon ($lat, $lon): $rating $teller")
 
-            RatedPolygon(points = polygon, rating = rating)
+            rated.add(RatedPolygon(points = polygon, rating = rating))
         }
 
-        return species.copy(ratedPolygons = rated)
+        species.copy(ratedPolygons = rated)
     }
 
 
