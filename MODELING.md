@@ -245,7 +245,7 @@ Diagrammet under viser hvordan appen kommuniserer med eksterne tjenester og komp
 - I hvilken rekkefølge disse tjenestene brukes
 - Hva slags data som hentes og hvordan det flyter videre i systemet
 
-**Flyt av data og logikk**
+**Flyt av data og logikk:**
 - Hvordan værdata og lokasjon brukes som input til ML-modellen
 - Hvordan ulike datakilder kombineres før noe vises til brukeren (f.eks. kart + fiskesteder)
 
@@ -278,3 +278,19 @@ sequenceDiagram
 ```
 
 # **Use-case-diagram**
+
+### **Diagrammet er nyttig for å illustrere:**
+- Oversikt over brukerkrav, "hva skal systemet kunne gjøre?"
+- Kommuniserer funksjonell arkitektur på et ikke-teknisk nivå, lett å forstå for utviklere, designere og interessenter
+- Avdekker mangler eller overflødig funksjonalitet tidlig i utviklingen
+- Støtter videre modellering (sekvensdiagrammer, tester, arkitektur)
+- Binder sammen brukeropplevelse og systemdesign
+
+Diagrammet viser hvilke handlinger brukeren kan gjøre relatert til MapScreen i appen. Det inkluderer både hovedfunksjoner og tilknyttede systemprosesser, som å hente kartdata fra MapBox eller fiskedata fra Fishbuddy.
+
+![Use case diagram 1](./usecase_MapScreen.drawio.png)
+
+Diagrammet viser hvilke handlinger brukeren kan gjøre relatert til DashboardScreen i appen. Dette inkluderer både hovedfunksjoner og tilknyttede systemprosesser, som å hente værdata fra Meteorologisk Institutt eller at ML-modellen kjører lokalt.
+
+![Use case diagram 2](./usecase_DashboardScreen.drawio.png)
+
