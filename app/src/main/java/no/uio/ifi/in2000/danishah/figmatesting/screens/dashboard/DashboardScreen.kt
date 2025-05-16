@@ -435,10 +435,29 @@ fun FishTripPlannerSection(navController: NavController) {
                                             trainingData.latitude,
                                             trainingData.longitude
                                         )
+                                        Log.d("AI_INPUT", """
+    Input for ${plass.name}:
+    speciesId=${trainingData.speciesId},
+    temp=${trainingData.temperature},
+    wind=${trainingData.windSpeed},
+    rain=${trainingData.precipitation},
+    pressure=${trainingData.airPressure},
+    cloud=${trainingData.cloudCover},
+    hour=${trainingData.timeOfDay},
+    season=${trainingData.season},
+    lat=${trainingData.latitude}, lon=${trainingData.longitude}
+""".trimIndent())
+
 
                                         val scores = predictor.predictScores(input)
-                                        val probability = scores[2] + scores[3]   // good + very good
+
+                                        val maxIdx = scores.indices.maxByOrNull { scores[it] } ?: -1
+                                        val probability = maxIdx * 10f + scores[maxIdx]
+
+                                        Log.d("AI_SORTING", "Plass: ${plass.name}, Klasse: $maxIdx, Score: ${scores[maxIdx]}, Total: $probability")
+
                                         plass to probability
+
                                     } else null
                                 }
                             }.awaitAll()
