@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,11 +23,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.ml.SpeciesMapper
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FishSpeciesSelectionScreen(navController: NavController) {
-    val speciesList = listOf(
-        "torsk", "makrell", "sei", "ørret", "sjøørret", "laks",
-        "gjedde", "røye", "hyse", "abbor", "havabbor",
-        "steinbit", "kveite", "rødspette"
-    )
+
     val supportedInlandSpecies = listOf(
         "ørret", "røye", "gjedde", "abbor", "laks"
     )

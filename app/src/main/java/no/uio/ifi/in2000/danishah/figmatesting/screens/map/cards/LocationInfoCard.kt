@@ -23,7 +23,7 @@ fun LocationInfoCard(
     Card(
         modifier = modifier
             .wrapContentWidth()
-            .widthIn(min = 160.dp, max = 320.dp)      // the card will never grow over 320 dp
+            .widthIn(min = 160.dp, max = 320.dp)
             .shadow(6.dp, RoundedCornerShape(16.dp)),
         shape  = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
@@ -33,21 +33,20 @@ fun LocationInfoCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            /* ---------- title + X ---------- */
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Spacer(Modifier.size(48.dp))           // "dead weight" = width of the icon button
+                Spacer(Modifier.size(48.dp))
 
                 Text(
                     text      = location.name,
                     style     = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     maxLines  = 2,
-                    modifier  = Modifier.weight(1f)    // center
+                    modifier  = Modifier.weight(1f)
                 )
 
                 IconButton(onClick = onClose) {
@@ -55,7 +54,6 @@ fun LocationInfoCard(
                 }
             }
 
-            /* ---------- Rating ---------- */
             Row(
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -73,7 +71,6 @@ fun LocationInfoCard(
                 )
             }
 
-            /* ---------- description (if it exists) ---------- */
             location.locs.firstOrNull()?.de?.takeIf { it.isNotBlank() }?.let { desc ->
                 Spacer(Modifier.height(8.dp))
                 Text(
@@ -84,7 +81,6 @@ fun LocationInfoCard(
                 )
             }
 
-            /* ---------- Features as plain text ---------- */
             location.locs.firstOrNull()?.fe?.takeIf { it.isNotEmpty() }?.let { feats ->
                 Spacer(Modifier.height(4.dp))
                 Text(

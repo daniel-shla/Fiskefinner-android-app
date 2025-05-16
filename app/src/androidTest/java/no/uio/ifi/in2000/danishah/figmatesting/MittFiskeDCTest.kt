@@ -1,6 +1,11 @@
-package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
+package no.uio.ifi.in2000.danishah.figmatesting
 
 import com.mapbox.geojson.Point
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Cluster
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.Loc
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.PointGeometry
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.toPoint
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test

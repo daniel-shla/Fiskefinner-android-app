@@ -29,7 +29,6 @@ import no.uio.ifi.in2000.danishah.figmatesting.screens.dashboard.UserLocation
 fun MapControls(
     viewModel: MapViewModel,
     context: Context,
-    mapViewportState: MapViewportState,
     launcher: ManagedActivityResultLauncher<String, Boolean>
 ) {
     SmallFloatingActionButton(

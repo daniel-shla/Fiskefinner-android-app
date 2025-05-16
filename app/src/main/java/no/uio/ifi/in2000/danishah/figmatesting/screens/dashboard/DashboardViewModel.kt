@@ -41,7 +41,6 @@ class DashboardViewModel : ViewModel() {
 
     private val mittFiskeRepository = MittFiskeRepository(MittFiskeDataSource(httpClient))
 
-    private val _weatherData = MutableStateFlow<WeatherData?>(null)
     private val _usingUserLocation = MutableStateFlow(false)
     val usingUserLocation = _usingUserLocation.asStateFlow()
     val repository: WeatherRepository = WeatherRepository()

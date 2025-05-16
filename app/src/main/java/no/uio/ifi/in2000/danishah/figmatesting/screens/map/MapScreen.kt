@@ -156,7 +156,7 @@ fun MapScreen(
 
              mapViewRef.value?.let { mapView ->
                  val camera = mapViewportState.cameraState ?: return@let
-                 val bounds = mapView.getMapboxMap().coordinateBoundsForCamera(
+                 val bounds = mapView.mapboxMap.coordinateBoundsForCamera(
                      CameraOptions.Builder()
                          .center(camera.center)
                          .zoom(camera.zoom)
@@ -268,7 +268,7 @@ fun MapScreen(
             LaunchedEffect(mittFiskeState.locations, mittFiskeState.isLoading) {
                 if (!mittFiskeState.isLoading && mittFiskeState.locations.isNotEmpty()) {
                     val mapView = mapViewRef.value ?: return@LaunchedEffect
-                    val bounds = mapView.getMapboxMap().coordinateBoundsForCamera(
+                    val bounds = mapView.mapboxMap.coordinateBoundsForCamera(
                         CameraOptions.Builder()
                             .center(mapViewportState.cameraState?.center)
                             .zoom(mapViewportState.cameraState?.zoom)
@@ -301,7 +301,7 @@ fun MapScreen(
                     polygonAnnotationManagerRef.value = plugin?.createPolygonAnnotationManager()
                 }
 
-                val bounds = mapView.getMapboxMap().coordinateBoundsForCamera(
+                val bounds = mapView.mapboxMap.coordinateBoundsForCamera(
                     CameraOptions.Builder()
                         .center(mapViewportState.cameraState?.center)
                         .zoom(mapViewportState.cameraState?.zoom)
@@ -403,7 +403,7 @@ fun MapScreen(
             )
         }
 
-        selectedCluster.value?.let { cluster ->
+        selectedCluster.value?.let {
             Box(modifier = Modifier.fillMaxSize()) {
                 ClusterOverviewCard(
                     cluster = selectedCluster.value!!,
@@ -522,7 +522,6 @@ fun MapScreen(
             MapControls(
                 viewModel = viewModel,
                 context = context,
-                mapViewportState = mapViewportState,
                 launcher = launcher
             )
         }

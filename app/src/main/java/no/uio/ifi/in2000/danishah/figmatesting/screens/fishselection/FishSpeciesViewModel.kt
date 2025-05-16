@@ -23,16 +23,13 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     private val repository = FishSpeciesRepository(application.applicationContext)
     
     private val _availableSpecies = MutableStateFlow<List<FishSpeciesData>>(emptyList())
-    val availableSpecies: StateFlow<List<FishSpeciesData>> = _availableSpecies.asStateFlow()
     
     private val _speciesStates = MutableStateFlow<Map<String, SpeciesState>>(emptyMap())
     val speciesStates: StateFlow<Map<String, SpeciesState>> = _speciesStates.asStateFlow()
     
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-    
-    private val _showSpeciesPanel = MutableStateFlow(false)
-    val showSpeciesPanel: StateFlow<Boolean> = _showSpeciesPanel.asStateFlow()
+
     
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
@@ -116,20 +113,8 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun getEnabledSpecies(): List<FishSpeciesData> {
-        return _speciesStates.value.values
-            .filter { it.isEnabled && it.isLoaded }
-            .map { it.species }
-    }
 
-    fun toggleSpeciesPanel(show: Boolean) {
-        _showSpeciesPanel.value = show
-    }
-    
 
-    fun clearErrorMessage() {
-        _errorMessage.value = null
-    }
     
 
     data class SpeciesState(
@@ -149,7 +134,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     }
 
 
-    suspend fun rateOneSpecies(
+    private suspend fun rateOneSpecies(
         species: FishSpeciesData,
         weatherViewModel: WeatherViewModel
     ): FishSpeciesData {
@@ -197,33 +182,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     }
 
 
-/*
-    suspend fun rateOneSpecies(
-        species: FishSpeciesData,
-        weatherViewModel: WeatherViewModel
-    ): FishSpeciesData {
-        val random = java.util.Random()
-        var teller = 0
 
-        val rated = species.polygons.mapNotNull { polygon ->
-            if (polygon.isEmpty()) {
-                Log.d("FishRating", "Tom polygon, hopper over")
-                return@mapNotNull null
-            }
-
-            teller += 1
-            val randomRating = random.nextFloat() * 10f // Rating mellom 0.0 og 10.0
-
-            if (teller % 100 == 0) {
-                Log.d("RATING", "Random rating for polygon #$teller: $randomRating")
-            }
-
-            RatedPolygon(points = polygon, rating = randomRating.toInt())
-        }
-
-        return species.copy(ratedPolygons = rated)
-    }
-*/
 
 
 

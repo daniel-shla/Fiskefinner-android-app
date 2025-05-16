@@ -34,19 +34,18 @@ fun ClusterOverviewCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            /* ---------- Title + X ---------- */
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Spacer(Modifier.size(48.dp)) // "dead weight" = width of the icon button
+                Spacer(Modifier.size(48.dp))
 
                 Text(
                     text      = "${cluster.spots.size} fiskeplasser i dette området",
                     style     = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
                     maxLines  = 2,
-                    modifier  = Modifier.weight(1f) // push the text to center
+                    modifier  = Modifier.weight(1f)
                 )
 
                 IconButton(onClick = onClose) {
@@ -57,7 +56,6 @@ fun ClusterOverviewCard(
 
             Spacer(Modifier.height(8.dp))
 
-            /* ---------- Up to three fishing spots ---------- */
             cluster.spots.take(3).forEach { spot ->
                 val loc = spot.locs.firstOrNull()
 
@@ -65,22 +63,19 @@ fun ClusterOverviewCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 6.dp),
-                    verticalAlignment = Alignment.Top          // top anchor
+                    verticalAlignment = Alignment.Top
                 ) {
-                    /* -------- Left column -------- */
                     Column(
                         modifier = Modifier
-                            .weight(1f)                       // take up the whole width
-                            .padding(end = 8.dp)              // some space towards rating
+                            .weight(1f)
+                            .padding(end = 8.dp)
                     ) {
-                        /* name */
                         Text(
                             text       = spot.name,
                             style      = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold
                         )
 
-                        /* description (can use multiple lines) */
                         loc?.de?.let {
                             Text(
                                 text      = it,
@@ -89,7 +84,6 @@ fun ClusterOverviewCard(
                             )
                         }
 
-                        /* Features (shows all - breaks automatically) */
                         loc?.fe?.takeIf { it.isNotEmpty() }?.let { feats ->
                             Text(
                                 text      = feats.joinToString(" • "),
@@ -99,15 +93,13 @@ fun ClusterOverviewCard(
                         }
                     }
 
-                    /* -------- right column (rating) -------- */
                     Text(
                         text = "⭐ ${spot.rating ?: "?"}",
-                        modifier = Modifier.align(Alignment.Top) // optically top-adjusted
+                        modifier = Modifier.align(Alignment.Top)
                     )
                 }
             }
 
-            /* ---------- «…and X more» ---------- */
             if (cluster.spots.size > 3) {
                 Text(
                     "…og ${cluster.spots.size - 3} til (zoom inn for mer)",
@@ -116,7 +108,6 @@ fun ClusterOverviewCard(
                 )
             }
 
-            /* ---------- average rating ---------- */
             cluster.averageRating?.let {
                 Spacer(Modifier.height(8.dp))
                 Text(

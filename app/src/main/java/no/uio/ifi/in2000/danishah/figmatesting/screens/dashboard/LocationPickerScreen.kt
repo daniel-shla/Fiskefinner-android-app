@@ -42,8 +42,8 @@ import com.mapbox.maps.plugin.gestures.gestures
 @Composable
 fun LocationPickerScreen(navController: NavController) {
     var selectedPoint by remember { mutableStateOf<Point?>(null) }
-    var mapView: MapView? = null
-    var circleAnnotationManager: CircleAnnotationManager? = null
+    var mapView: MapView
+    var circleAnnotationManager: CircleAnnotationManager
 
 
     Scaffold(
@@ -116,8 +116,8 @@ fun LocationPickerScreen(navController: NavController) {
 
                             gestures.addOnMapClickListener { point ->
                                 selectedPoint = point
-                                circleAnnotationManager?.deleteAll()
-                                circleAnnotationManager?.create(
+                                circleAnnotationManager.deleteAll()
+                                circleAnnotationManager.create(
                                     CircleAnnotationOptions()
                                         .withPoint(point)
                                         .withCircleRadius(8.0)
@@ -140,7 +140,7 @@ fun LocationPickerScreen(navController: NavController) {
                             }
                         }
                     }
-                    mapView!!
+                    mapView
             }, update = {})
         }
     }

@@ -1,5 +1,6 @@
-package no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses
+package no.uio.ifi.in2000.danishah.figmatesting
 
+import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.TrainingData
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

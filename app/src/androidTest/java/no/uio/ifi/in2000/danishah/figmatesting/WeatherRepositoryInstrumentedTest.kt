@@ -1,8 +1,8 @@
-package no.uio.ifi.in2000.danishah.figmatesting.data.repository
+package no.uio.ifi.in2000.danishah.figmatesting
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.runBlocking
-import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.WeatherResponse
+import no.uio.ifi.in2000.danishah.figmatesting.data.repository.WeatherRepository
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith

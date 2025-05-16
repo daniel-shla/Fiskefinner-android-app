@@ -24,11 +24,9 @@ import androidx.compose.material.icons.filled.BrightnessLow
 import androidx.compose.material.icons.filled.CloudQueue
 import androidx.compose.material.icons.filled.CompassCalibration
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material.icons.filled.Umbrella
 import androidx.compose.material.icons.filled.WbSunny
@@ -38,14 +36,13 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -108,7 +105,7 @@ fun ProfileScreen(
             }
         }
 
-        var selectedTabIndex by remember { mutableStateOf(0) }
+        var selectedTabIndex by remember { mutableIntStateOf(0) }
         val tabs = listOf("Værforhold", "Tid", "Årstider")
         
         Card(

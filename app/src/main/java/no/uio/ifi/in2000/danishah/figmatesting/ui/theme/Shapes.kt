@@ -12,17 +12,5 @@ val Shapes = Shapes(
     large = RoundedCornerShape(16.dp)
 )
 
-val BottomNavShape = RoundedCornerShape(
-    topStart = 0.dp,
-    topEnd = 0.dp,
-    bottomStart = 0.dp,
-    bottomEnd = 0.dp
-)
-
-val MapButtonShape = RoundedCornerShape(50) // Circular buttons
 
 val SearchBarShape = RoundedCornerShape(28.dp)
-
-val CardShape = RoundedCornerShape(16.dp)
-
-val ProfilePictureShape = RoundedCornerShape(8.dp) 

@@ -1,5 +1,6 @@
-package no.uio.ifi.in2000.danishah.figmatesting.ml
+package no.uio.ifi.in2000.danishah.figmatesting
 
+import no.uio.ifi.in2000.danishah.figmatesting.ml.SpeciesMapper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

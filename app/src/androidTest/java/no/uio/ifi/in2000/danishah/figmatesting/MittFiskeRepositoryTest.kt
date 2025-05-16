@@ -1,4 +1,4 @@
-package no.uio.ifi.in2000.danishah.figmatesting.data.repository
+package no.uio.ifi.in2000.danishah.figmatesting
 
 import kotlinx.coroutines.runBlocking
 import no.uio.ifi.in2000.danishah.figmatesting.data.dataClasses.MittFiskeLocation
@@ -7,6 +7,7 @@ import no.uio.ifi.in2000.danishah.figmatesting.data.source.MittFiskeDataSource
 import org.junit.Assert.*
 import org.junit.Test
 import io.ktor.client.HttpClient
+import no.uio.ifi.in2000.danishah.figmatesting.data.repository.MittFiskeRepository
 
 class MittFiskeRepositoryTest {
 
