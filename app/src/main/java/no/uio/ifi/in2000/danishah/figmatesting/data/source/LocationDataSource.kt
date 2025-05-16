@@ -31,7 +31,7 @@ open class LocationDataSource(private val api: MapboxApiClient = MapboxApiClient
     }
     
     companion object {
-        val NORWAY_CENTER = Point.fromLngLat(10.7522, 61.5)
+        val NORWAY_CENTER: Point = Point.fromLngLat(10.7522, 61.5)
 
         // Default zooms
         const val COUNTRY_ZOOM = 4.0

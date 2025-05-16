@@ -24,12 +24,12 @@ open class MittFiskeDataSource(
         max: Int
     ): List<MittFiskeLocation> {
         return try {
-            Log.d("MittFiske", "${polygonWKT}")
+            Log.d("MittFiske", polygonWKT)
             val url = "$BASE_URL?" +
                     "filter=c/any(p:geo.intersects(p,geography'$polygonWKT')) " +
                     "and min le $min and max ge $max" +
                     "&limit=1000&orderby=geo.distance(p, geography'$pointWKT')"
-            Log.d("MittFiske", "${url}")
+            Log.d("MittFiske", url)
 
 
             val response: HttpResponse = client.get(url)
@@ -64,7 +64,7 @@ open class MittFiskeDataSource(
                             Loc(
                                 ca = locJson.getString("ca"),
                                 n = locJson.getString("n"),
-                                i = locJson.optString("i", null),
+                                i = locJson.optString("i", null.toString()),
                                 u = locJson.getString("u"),
                                 k = locJson.getString("k"),
                                 f = locJson.getString("f"),

@@ -110,7 +110,5 @@ class MapboxApiClient {
         }
     }
     
-    fun close() {
-        client.close()
-    }
+
 } 

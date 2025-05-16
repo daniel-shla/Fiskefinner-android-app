@@ -29,9 +29,7 @@ data class SearchFeature(
 data class PointDto(
     val longitude: Double,
     val latitude: Double
-) {
-    fun toPoint(): Point = Point.fromLngLat(longitude, latitude)
-}
+)
 
 @Serializable
 data class FeatureGeometry(
