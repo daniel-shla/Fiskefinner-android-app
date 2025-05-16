@@ -34,7 +34,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
     
-    private val maxConcurrentSpecies = 8
+    private val maxConcurrentSpecies = 6
 
     private val weatherCache = mutableMapOf<Pair<Int, Int>, TimeSeries>()
 
