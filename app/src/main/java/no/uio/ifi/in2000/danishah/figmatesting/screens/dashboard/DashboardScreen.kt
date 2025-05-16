@@ -111,7 +111,6 @@ fun DashboardScreen(
                         Text("Ingen værdata tilgjengelig.")
                     }
                 }
-                else -> { /* nothing */ }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -136,6 +135,7 @@ fun DashboardScreen(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 val LocalDateTimeSaver = Saver<LocalDateTime?, String>(
     save = { it?.toString() ?: "" },
     restore = { if (it.isNotEmpty()) LocalDateTime.parse(it) else null }
@@ -387,7 +387,6 @@ fun FishTripPlannerSection(navController: NavController) {
                             val nearby = result.filter { (_, distKm) -> distKm <= radiusKm }
 
 
-                            val distanceSorted = nearby
 
                             //AI rank the nearby spots
                             val aiRated = nearby.map { (plass, _) ->
@@ -447,7 +446,7 @@ fun FishTripPlannerSection(navController: NavController) {
                                 .sortedByDescending { it.second } // highest score on top
 
                             /* -- return both lists as a Pair -- */
-                            distanceSorted to aiRated
+                            nearby to aiRated
                         }
 
                         distanceSorted = sortedByDistance

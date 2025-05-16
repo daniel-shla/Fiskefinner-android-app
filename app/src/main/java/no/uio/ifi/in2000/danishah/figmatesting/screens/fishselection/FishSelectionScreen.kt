@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -182,15 +183,21 @@ fun FishSelectionScreen(
                                 if (isLoadingSpecies && !state.isLoaded && state.isEnabled) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(24.dp),
-                                        strokeWidth = 2.dp
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.error
                                     )
                                 } else {
                                     Switch(
                                         checked = state.isEnabled,
                                         onCheckedChange = {
                                             fishSpeciesViewModel.toggleSpecies(scientificName, weatherViewModel)
-                                        }
+                                        },
+                                        colors = SwitchDefaults.colors(
+                                            uncheckedThumbColor = MaterialTheme.colorScheme.primaryContainer,
+                                            checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                                        )
                                     )
+
 
                                 }
                             }
