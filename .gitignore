@@ -21,3 +21,7 @@ app/build/
 
 # Large assets
 app/src/main/assets/synthetic_fish_data.csv
+
+.idea/
+.vscode/
+
