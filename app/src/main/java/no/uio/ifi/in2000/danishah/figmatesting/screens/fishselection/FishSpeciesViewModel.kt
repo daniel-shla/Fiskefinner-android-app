@@ -34,7 +34,6 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
 
     
     private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
     
     private val maxConcurrentSpecies = 6
 
@@ -71,11 +70,9 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
             return
         }
 
-        // Oppdater state umiddelbart (rask UI-respons)
         currentStates[scientificName] = currentState.copy(isEnabled = newEnabled)
         _speciesStates.value = currentStates
 
-        // Start lasting og vurdering i bakgrunnen
         if (newEnabled && !currentState.isLoaded) {
             loadAndRateSpecies(scientificName, weatherViewModel)
         }
@@ -84,7 +81,6 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     private fun loadAndRateSpecies(scientificName: String, weatherViewModel: WeatherViewModel) {
         viewModelScope.launch(Dispatchers.IO) {
             val currentStates = _speciesStates.value.toMutableMap()
-            val currentState = currentStates[scientificName] ?: return@launch
 
             withContext(Dispatchers.Main) {
                 _isLoading.value = true
@@ -132,13 +128,7 @@ class FishSpeciesViewModel(application: Application) : AndroidViewModel(applicat
     )
     
 
-    fun updateSpeciesOpacity(scientificName: String, opacity: Float) {
-        val currentStates = _speciesStates.value.toMutableMap()
-        val currentState = currentStates[scientificName] ?: return
-        
-        currentStates[scientificName] = currentState.copy(opacity = opacity)
-        _speciesStates.value = currentStates
-    }
+
 
     private val predictor = FishPredictor(getApplication())
 
