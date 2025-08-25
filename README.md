@@ -14,48 +14,22 @@ FiskeFinner er en Android-app utviklet i Kotlin som viser anbefalte fiskesteder 
 ## Visuals
 <table>
   <tr>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/82f1a2e8-f6ea-4014-9f3d-85b8e4e42bc4" width="200"/><br/>
-      <b>Screen 9</b>
-    </td>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/fbe6d879-e429-42f5-8d15-a9ed30c3ebab" width="200"/><br/>
-      <b>Screen 8</b>
-    </td>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/27d2173c-fe0f-4e03-addd-daf8692d38fb" width="200"/><br/>
-      <b>Screen 7</b>
-    </td>
+    <td><img src="https://github.com/user-attachments/assets/41f78184-2b45-4dac-91ad-90abb901c688" width="200"/></td>
+    <td><img src="https://github.com/user-attachments/assets/158ded64-0a22-40ba-867c-b1af13394553" width="200"/></td>
+    <td><img src="https://github.com/user-attachments/assets/3a621559-d614-455d-84e7-9cfdfd7252fb" width="200"/></td>
   </tr>
   <tr>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/39b128d4-09b5-455b-9495-7f8d3dfcb2d7" width="200"/><br/>
-      <b>Screen 6</b>
-    </td>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/c82e3435-9205-4314-89b7-68e4cf5eaab2" width="200"/><br/>
-      <b>Screen 5</b>
-    </td>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/3308ea55-3935-4d51-afa3-0da811b1a564" width="200"/><br/>
-      <b>Screen 4</b>
-    </td>
+    <td><img src="https://github.com/user-attachments/assets/3308ea55-3935-4d51-afa3-0da811b1a564" width="200"/></td>
+    <td><img src="https://github.com/user-attachments/assets/c82e3435-9205-4314-89b7-68e4cf5eaab2" width="200"/></td>
+    <td><img src="https://github.com/user-attachments/assets/39b128d4-09b5-455b-9495-7f8d3dfcb2d7" width="200"/></td>
   </tr>
   <tr>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/3a621559-d614-455d-84e7-9cfdfd7252fb" width="200"/><br/>
-      <b>Screen 3</b>
-    </td>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/158ded64-0a22-40ba-867c-b1af13394553" width="200"/><br/>
-      <b>Screen 2</b>
-    </td>
-    <td align="center">
-      <img src="https://github.com/user-attachments/assets/41f78184-2b45-4dac-91ad-90abb901c688" width="200"/><br/>
-      <b>Screen 1</b>
-    </td>
+    <td><img src="https://github.com/user-attachments/assets/27d2173c-fe0f-4e03-addd-daf8692d38fb" width="200"/></td>
+    <td><img src="https://github.com/user-attachments/assets/fbe6d879-e429-42f5-8d15-a9ed30c3ebab" width="200"/></td>
+    <td><img src="https://github.com/user-attachments/assets/82f1a2e8-f6ea-4014-9f3d-85b8e4e42bc4" width="200"/></td>
   </tr>
 </table>
+
 ## Key Features
 
 *  Søk etter steder i Norge via Mapbox
