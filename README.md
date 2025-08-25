@@ -12,28 +12,50 @@
 FiskeFinner er en Android-app utviklet i Kotlin som viser anbefalte fiskesteder i Norge på et interaktivt kart, basert på værdata og maskinlæring. Appen kombinerer Mapbox for kart, værprognoser og en TensorFlow Lite-modell for å gi prediksjoner på fiskeforhold. Brukeren kan søke etter steder, velge fisketype og planlegge fisketurer basert på AI-vurderinger.
 
 ## Visuals
-
 <table>
   <tr>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/08d63beb-db5b-49ef-9254-b502b4a23559" width="250"/></td>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/633a8b8e-20ee-491a-9cbe-905b717f084f" width="250"/></td>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/2d137be9-5d0c-4044-9dd1-8e1c3e16a71f" width="250"/></td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/82f1a2e8-f6ea-4014-9f3d-85b8e4e42bc4" width="200"/><br/>
+      <b>Screen 9</b>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/fbe6d879-e429-42f5-8d15-a9ed30c3ebab" width="200"/><br/>
+      <b>Screen 8</b>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/27d2173c-fe0f-4e03-addd-daf8692d38fb" width="200"/><br/>
+      <b>Screen 7</b>
+    </td>
   </tr>
   <tr>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/49a450b7-9d86-4dc9-81a1-08c534acb324" width="250"/></td>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/e3fb9da5-b455-4e9a-81f5-4665988867d4" width="250"/></td>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/7d1ab270-0375-4188-a4eb-a4acb1ffa81f" width="250"/></td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/39b128d4-09b5-455b-9495-7f8d3dfcb2d7" width="200"/><br/>
+      <b>Screen 6</b>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/c82e3435-9205-4314-89b7-68e4cf5eaab2" width="200"/><br/>
+      <b>Screen 5</b>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/3308ea55-3935-4d51-afa3-0da811b1a564" width="200"/><br/>
+      <b>Screen 4</b>
+    </td>
   </tr>
   <tr>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/3eef2b06-4bef-41ab-8661-ccf261357af9" width="250"/></td>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/94668ea4-f6ec-4dc8-ac8b-9cd0083d6e70" width="250"/></td>
-    <td><img src="https://github.uio.no/IN2000-V25/team-17/assets/10476/8bdee5c3-8b83-4300-b2c8-8d6c9ca63532" width="250"/></td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/3a621559-d614-455d-84e7-9cfdfd7252fb" width="200"/><br/>
+      <b>Screen 3</b>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/158ded64-0a22-40ba-867c-b1af13394553" width="200"/><br/>
+      <b>Screen 2</b>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/41f78184-2b45-4dac-91ad-90abb901c688" width="200"/><br/>
+      <b>Screen 1</b>
+    </td>
   </tr>
 </table>
-
-
-
-
 ## Key Features
 
 *  Søk etter steder i Norge via Mapbox
